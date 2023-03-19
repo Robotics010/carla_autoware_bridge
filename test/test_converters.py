@@ -21,33 +21,22 @@
 #   SOFTWARE.
 
 from carla_autoware_bridge.converter.fake import FakeConverter
-from carla_autoware_bridge.converter.imu import ImuConverter
 
 import pytest
 
-from sensor_msgs.msg import Imu
 
-
-def test_fake_default_inbox():
+def test_fake_convert_without_setting_inbox():
     fake_converter = FakeConverter()
-    assert fake_converter.inbox is None
+    with pytest.raises(RuntimeError):
+        fake_converter.convert()
 
 
-def test_fake_set_default_inbox():
-    default_value = 10
-    fake_converter = FakeConverter(default_inbox=default_value)
-    assert fake_converter.inbox == default_value
-
-
-def test_fake_default_outbox():
+def test_fake_outbox_without_calling_convert():
+    input_value = 10
     fake_converter = FakeConverter()
-    assert fake_converter.outbox is None
-
-
-def test_fake_set_default_outbox():
-    default_value = 10
-    fake_converter = FakeConverter(default_outbox=default_value)
-    assert fake_converter.outbox == default_value
+    fake_converter.inbox = input_value
+    with pytest.raises(RuntimeError):
+        fake_converter.outbox
 
 
 def test_fake_inbox():
@@ -70,51 +59,3 @@ def test_fake_convert():
     fake_converter.inbox = input_value
     fake_converter.convert()
     assert fake_converter.outbox == input_value
-
-
-def test_imu_default_input_type():
-    default_value = Imu()
-    imu_converter = ImuConverter(default_inbox=default_value)
-    assert imu_converter.inbox == default_value
-
-
-def test_imu_default_raise_wrong_input_type():
-    default_non_imu_msg = 10
-    with pytest.raises(TypeError):
-        imu_converter = ImuConverter(default_inbox=default_non_imu_msg)
-        imu_converter
-
-
-def test_imu_default_output_type():
-    default_value = Imu()
-    imu_converter = ImuConverter(default_outbox=default_value)
-    assert imu_converter.outbox == default_value
-
-
-def test_imu_default_raise_wrong_output_type():
-    default_non_imu_msg = 10
-    with pytest.raises(TypeError):
-        imu_converter = ImuConverter(default_outbox=default_non_imu_msg)
-        imu_converter
-
-
-def test_imu_no_raise_imu_input_type():
-    input_imu_msg = Imu()
-    imu_converter = ImuConverter()
-    imu_converter.inbox = input_imu_msg
-
-
-def test_imu_raise_wrong_input_type():
-    input_non_imu_msg = 10
-    imu_converter = ImuConverter()
-    with pytest.raises(TypeError):
-        imu_converter.inbox = input_non_imu_msg
-
-
-def test_imu_angular_velocity_conversion():
-    input_imu_msg = Imu()
-    expected_output_imu_msg = Imu()
-    imu_converter = ImuConverter()
-    imu_converter.inbox = input_imu_msg
-    imu_converter.convert()
-    assert imu_converter.outbox == expected_output_imu_msg

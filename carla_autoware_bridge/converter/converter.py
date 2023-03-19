@@ -40,8 +40,15 @@ class Converter(ABC):
 
     @property
     def outbox(self):
+        if self._outbox is None:
+            raise RuntimeError('Call convert before getting outbox!')
         return self._outbox
 
-    @abstractmethod
     def convert(self):
+        if self._inbox is None:
+            raise RuntimeError('Set inbox before calling convert!')
+        self._convert()
+
+    @abstractmethod
+    def _convert(self):
         pass

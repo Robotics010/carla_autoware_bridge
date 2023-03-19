@@ -25,5 +25,5 @@ from carla_autoware_bridge.converter.converter import Converter
 
 class FakeConverter(Converter):
 
-    def convert(self):
+    def _convert(self):
         self._outbox = self._inbox
