@@ -20,7 +20,10 @@
 #   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #   SOFTWARE.
 
+from autoware_auto_vehicle_msgs.msg import VelocityReport
 from carla_autoware_bridge.converter.fake import FakeConverter
+from carla_autoware_bridge.converter.velocity_report import VelocityReportConverter
+from nav_msgs.msg import Odometry
 
 import pytest
 
@@ -59,3 +62,36 @@ def test_fake_convert():
     fake_converter.inbox = input_value
     fake_converter.convert()
     assert fake_converter.outbox == input_value
+
+
+def test_velocity_report_convert():
+    input_odometry = Odometry()
+    angular_velocity = input_odometry.twist.twist.angular
+    angular_velocity.z = -0.317
+    linear_velocity = input_odometry.twist.twist.linear
+    linear_velocity.x = 5.55
+    linear_velocity.y = 0.77
+
+    output_velocity_report = VelocityReport()
+    output_velocity_report.heading_rate = 0.317
+    output_velocity_report.longitudinal_velocity = 5.55
+    output_velocity_report.lateral_velocity = -0.77
+
+    vel_rep_converter = VelocityReportConverter()
+    vel_rep_converter.inbox = input_odometry
+    vel_rep_converter.convert()
+    assert vel_rep_converter.outbox.longitudinal_velocity == \
+        output_velocity_report.longitudinal_velocity
+    assert vel_rep_converter.outbox.lateral_velocity == \
+        output_velocity_report.lateral_velocity
+    assert vel_rep_converter.outbox.heading_rate == output_velocity_report.heading_rate
+
+
+def test_velocity_report_invalid_input():
+    class UnexpectedInput():
+        pass
+    input_invalid = UnexpectedInput()
+    vel_rep_converter = VelocityReportConverter()
+    vel_rep_converter.inbox = input_invalid
+    with pytest.raises(RuntimeError):
+        vel_rep_converter.convert()

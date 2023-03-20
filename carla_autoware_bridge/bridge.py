@@ -20,6 +20,28 @@
 #   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #   SOFTWARE.
 
+from autoware_auto_vehicle_msgs.msg import VelocityReport
+from carla_autoware_bridge.converter.velocity_report import VelocityReportConverter
+from nav_msgs.msg import Odometry
+from rclpy.node import Node
 
-class AutowareBridge:
-    pass
+
+class AutowareBridge(Node):
+
+    def __init__(self) -> None:
+        super().__init__('carla_autoware_bridge')
+        self._velocity_report_converter = VelocityReportConverter()
+
+        self._odometry_subscriber = self.create_subscription(
+            Odometry, '/carla/ego_vehicle/odometry',
+            self._odometry_callback, 1)
+
+        self._velocity_report_publisher = self.create_publisher(
+            VelocityReport, '/vehicle/status/velocity_status', 1)
+
+    def _odometry_callback(self, odometry_msg):
+        self._velocity_report_converter.inbox = odometry_msg
+        self._velocity_report_converter.convert()
+
+        velocity_report_msg = self._velocity_report_converter.outbox
+        self._velocity_report_publisher.publish(velocity_report_msg)

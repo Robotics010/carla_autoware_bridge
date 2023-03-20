@@ -20,9 +20,25 @@
 #   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #   SOFTWARE.
 
-from carla_autoware_bridge.bridge import AutowareBridge
+from autoware_auto_vehicle_msgs.msg import VelocityReport
+from carla_autoware_bridge.converter.converter import Converter
+from nav_msgs.msg import Odometry
 
 
-def test_bridge_init():
-    bridge = AutowareBridge()
-    bridge
+class VelocityReportConverter(Converter):
+
+    def _convert(self):
+        if not isinstance(self._inbox, Odometry):
+            raise RuntimeError(f'Input must be {Odometry}!')
+
+        # Convert from left-handed Unreal coordinate frame
+        # to right-handed ROS2 coordinate frame
+        yaw_rate = self._inbox.twist.twist.angular.z
+        longitudinal_velocity = self._inbox.twist.twist.linear.x
+        lateral_velocity = self._inbox.twist.twist.linear.y
+
+        output_velocity_report = VelocityReport()
+        output_velocity_report.heading_rate = -yaw_rate
+        output_velocity_report.longitudinal_velocity = longitudinal_velocity
+        output_velocity_report.lateral_velocity = -lateral_velocity
+        self._outbox = output_velocity_report
