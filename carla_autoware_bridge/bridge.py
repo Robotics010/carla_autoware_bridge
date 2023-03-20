@@ -37,7 +37,7 @@ class AutowareBridge(Node):
             self._odometry_callback, 1)
 
         self._velocity_report_publisher = self.create_publisher(
-            VelocityReport, '/vehicle/status/velocity_status', 1)
+            VelocityReport, '/carla/ego_vehicle/velocity_status', 1)
 
     def _odometry_callback(self, odometry_msg):
         self._velocity_report_converter.inbox = odometry_msg
