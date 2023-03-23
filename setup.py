@@ -1,6 +1,7 @@
-import os
-from setuptools import setup
 from glob import glob
+import os
+
+from setuptools import setup
 
 package_name = 'carla_autoware_bridge'
 
@@ -13,7 +14,7 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
         ('share/' + package_name + '/config',
-             ['config/objects.json']),
+         ['config/objects.json']),
         (os.path.join('share', package_name), glob('launch/*.launch.py')),
     ],
     install_requires=['setuptools'],

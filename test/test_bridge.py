@@ -42,7 +42,7 @@ class BridgeTester(Node):
         self._odometry_publisher = self.create_publisher(
             Odometry, '/carla/ego_vehicle/odometry', 1)
         self._velocity_report_subscriber = self.create_subscription(
-            VelocityReport, '/vehicle/status/velocity_status',
+            VelocityReport, '/carla/ego_vehicle/velocity_status',
             self._velocity_report_callback, 1)
         self._velocity_report_subscriber
 
@@ -76,11 +76,10 @@ def test_bridge_init():
 
     start_time = time.time()
     while not bridge_tester.is_received:
-        rclpy.spin_once(bridge)
-        rclpy.spin_once(bridge_tester)
-        if time.time() - start_time > 0.1:
+        rclpy.spin_once(bridge, timeout_sec=0.001)
+        rclpy.spin_once(bridge_tester, timeout_sec=0.001)
+        if time.time() - start_time > 1.0:
             raise RuntimeError('Exceeded the waiting timer for receiving odom msg!')
-        time.sleep(0.001)
 
     assert pytest.approx(bridge_tester.velocity_report.heading_rate) == \
         pytest.approx(expected_velocity_report.heading_rate)
