@@ -20,10 +20,19 @@
 #   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #   SOFTWARE.
 
+from carla_autoware_bridge.bridge import AutowareBridge
+import rclpy
 
-# def main():
-#     print('Hi from carla_autoware_bridge.')
+
+def main(args=None):
+    rclpy.init(args=args)
+    carla_autoware_bridge = AutowareBridge()
+
+    rclpy.spin(carla_autoware_bridge)
+
+    carla_autoware_bridge.destroy_node()
+    rclpy.shutdown()
 
 
-# if __name__ == '__main__':
-#     main()
+if __name__ == '__main__':
+    main()

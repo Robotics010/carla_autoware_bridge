@@ -26,7 +26,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'my_node = carla_autoware_bridge.my_node:main'
+            'carla_autoware_bridge = carla_autoware_bridge.carla_autoware_bridge:main'
         ],
     },
 )

@@ -138,6 +138,14 @@ def generate_launch_description():
                 ('/carla/ego_vehicle/gnss', '/sensing/gnss/ublox/nav_sat_fix'),
                 ('/carla/ego_vehicle/imu', '/sensing/imu/tamagawa/imu_raw'),
                 ('/carla/ego_vehicle/lidar', '/sensing/lidar/top/pointcloud_raw_ex'),
+            ],
+        ),
+        launch_ros.actions.Node(
+            package='carla_autoware_bridge',
+            executable='carla_autoware_bridge',
+            name='carla_autoware_bridge',
+            on_exit=launch.actions.Shutdown(),
+            remappings=[
                 ('/carla/ego_vehicle/velocity_status', '/vehicle/status/velocity_status'),
             ],
         )
