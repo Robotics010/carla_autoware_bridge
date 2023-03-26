@@ -145,6 +145,11 @@ def generate_launch_description():
             executable='carla_autoware_bridge',
             name='carla_autoware_bridge',
             on_exit=launch.actions.Shutdown(),
+            parameters=[
+                {
+                    'use_sim_time': True
+                }
+            ],
             remappings=[
                 ('/carla/ego_vehicle/velocity_status', '/vehicle/status/velocity_status'),
             ],

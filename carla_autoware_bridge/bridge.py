@@ -24,6 +24,7 @@ from autoware_auto_vehicle_msgs.msg import VelocityReport
 from carla_autoware_bridge.converter.velocity_report import VelocityReportConverter
 from nav_msgs.msg import Odometry
 from rclpy.node import Node
+from std_msgs.msg import Header
 
 
 class AutowareBridge(Node):
@@ -44,4 +45,9 @@ class AutowareBridge(Node):
         self._velocity_report_converter.convert()
 
         velocity_report_msg = self._velocity_report_converter.outbox
+
+        header = Header()
+        header.frame_id = 'base_link'
+        header.stamp = self.get_clock().now().to_msg()
+        velocity_report_msg.header = header
         self._velocity_report_publisher.publish(velocity_report_msg)
