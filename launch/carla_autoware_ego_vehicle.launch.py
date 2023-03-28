@@ -31,7 +31,7 @@ def generate_launch_description():
         launch.actions.DeclareLaunchArgument(
             name='objects_definition_file',
             default_value=get_package_share_directory(
-                'carla_autoware_spawn') + '/config/objects.json'
+                'carla_autoware_bridge') + '/config/objects.json'
         ),
         launch.actions.IncludeLaunchDescription(
             launch.launch_description_sources.PythonLaunchDescriptionSource(
