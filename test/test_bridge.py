@@ -22,9 +22,10 @@
 
 import time
 
+from autoware_auto_control_msgs.msg import AckermannControlCommand
 from autoware_auto_vehicle_msgs.msg import SteeringReport, VelocityReport
 from carla_autoware_bridge.bridge import AutowareBridge
-from carla_msgs.msg import CarlaEgoVehicleStatus
+from carla_msgs.msg import CarlaEgoVehicleControl, CarlaEgoVehicleStatus
 from nav_msgs.msg import Odometry
 import numpy as np
 import pytest
@@ -46,6 +47,10 @@ class BridgeTester(Node):
         self._vehicle_status_publisher = self.create_publisher(
             CarlaEgoVehicleStatus, '/carla/ego_vehicle/vehicle_status', 1)
 
+        self.ackermann_control_command = None
+        self._ackermann_control_command_publisher = self.create_publisher(
+            AckermannControlCommand, '/control/command/control_cmd', 1)
+
         # Subscribers
         self.is_velocity_report_received = False
         self.velocity_report = None
@@ -61,6 +66,13 @@ class BridgeTester(Node):
             self._steering_status_callback, 1)
         self._steering_status_subscriber
 
+        self.is_vehicle_control_command_received = False
+        self.vehicle_control_command = None
+        self._vehicle_control_command_subscriber = self.create_subscription(
+            CarlaEgoVehicleControl, '/carla/ego_vehicle/vehicle_control_cmd',
+            self._vehicle_control_command_callback, 1)
+        self._vehicle_control_command_subscriber
+
     def _velocity_report_callback(self, velocity_report_msg):
         self.velocity_report = velocity_report_msg
         self.is_velocity_report_received = True
@@ -69,11 +81,18 @@ class BridgeTester(Node):
         self.steering_status = steering_status_msg
         self.is_steering_status_received = True
 
+    def _vehicle_control_command_callback(self, vehicle_control_command_msg):
+        self.vehicle_control_command = vehicle_control_command_msg
+        self.is_vehicle_control_command_received = True
+
     def publish_odometry(self):
         self._odometry_publisher.publish(self.odometry)
 
     def publish_vehicle_status(self):
         self._vehicle_status_publisher.publish(self.vehicle_status)
+
+    def publish_ackermann_control_command(self):
+        self._ackermann_control_command_publisher.publish(self.ackermann_control_command)
 
 
 def test_velocity_report():
@@ -140,3 +159,34 @@ def test_steering_status():
 
     assert pytest.approx(bridge_tester.steering_status.steering_tire_angle) == \
         pytest.approx(expected_steering_status.steering_tire_angle)
+
+    rclpy.shutdown()
+
+
+def test_control_command():
+    rclpy.init()
+    bridge = AutowareBridge()
+
+    input_control_command = AckermannControlCommand()
+    input_control_command.longitudinal.acceleration = 7.366
+
+    expected_control_command = CarlaEgoVehicleControl()
+    expected_control_command.throttle = 1.0
+    expected_control_command.brake = 0.0
+
+    bridge_tester = BridgeTester()
+    bridge_tester.ackermann_control_command = input_control_command
+    bridge_tester.publish_ackermann_control_command()
+
+    start_time = time.time()
+    while not bridge_tester.is_vehicle_control_command_received:
+        rclpy.spin_once(bridge, timeout_sec=0.001)
+        rclpy.spin_once(bridge_tester, timeout_sec=0.001)
+        if time.time() - start_time > 1.0:
+            raise RuntimeError('Exceeded the waiting timer for '
+                               'receiving vehicle_control_command msg!')
+
+    assert pytest.approx(bridge_tester.vehicle_control_command.throttle) == \
+        pytest.approx(expected_control_command.throttle)
+
+    rclpy.shutdown()

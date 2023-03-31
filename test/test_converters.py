@@ -21,11 +21,13 @@
 #   SOFTWARE.
 
 
+from autoware_auto_control_msgs.msg import AckermannControlCommand
 from autoware_auto_vehicle_msgs.msg import SteeringReport, VelocityReport
+from carla_autoware_bridge.converter.control_command import ControlCommandConverter
 from carla_autoware_bridge.converter.fake import FakeConverter
 from carla_autoware_bridge.converter.steering_status import SteeringStatusConverter
 from carla_autoware_bridge.converter.velocity_report import VelocityReportConverter
-from carla_msgs.msg import CarlaEgoVehicleStatus
+from carla_msgs.msg import CarlaEgoVehicleControl, CarlaEgoVehicleStatus
 from nav_msgs.msg import Odometry
 import numpy as np
 
@@ -164,3 +166,119 @@ def test_steering_status_invalid_input():
     steering_status_converter.inbox = input_invalid
     with pytest.raises(RuntimeError):
         steering_status_converter.convert()
+
+
+def test_throttle_control_command():
+    input_control_command = AckermannControlCommand()
+    input_control_command.longitudinal.acceleration = 7.366
+
+    expected_control_command = CarlaEgoVehicleControl()
+    expected_control_command.throttle = 1.0
+    expected_control_command.brake = 0.0
+
+    control_command_converter = ControlCommandConverter()
+    control_command_converter.inbox = input_control_command
+    control_command_converter.convert()
+
+    assert pytest.approx(control_command_converter.outbox.throttle) == \
+        pytest.approx(expected_control_command.throttle)
+    assert pytest.approx(control_command_converter.outbox.brake) == \
+        pytest.approx(expected_control_command.brake)
+
+
+def test_still_control_command():
+    input_control_command = AckermannControlCommand()
+    input_control_command.longitudinal.acceleration = 0.0
+
+    expected_control_command = CarlaEgoVehicleControl()
+    expected_control_command.throttle = 0.0
+    expected_control_command.brake = 0.0
+
+    control_command_converter = ControlCommandConverter()
+    control_command_converter.inbox = input_control_command
+    control_command_converter.convert()
+
+    assert pytest.approx(control_command_converter.outbox.throttle) == \
+        pytest.approx(expected_control_command.throttle)
+    assert pytest.approx(control_command_converter.outbox.brake) == \
+        pytest.approx(expected_control_command.brake)
+
+
+def test_brake_control_command():
+    input_control_command = AckermannControlCommand()
+    input_control_command.longitudinal.acceleration = -24.67
+
+    expected_control_command = CarlaEgoVehicleControl()
+    expected_control_command.throttle = 0.0
+    expected_control_command.brake = 1.0
+
+    control_command_converter = ControlCommandConverter()
+    control_command_converter.inbox = input_control_command
+    control_command_converter.convert()
+
+    assert pytest.approx(control_command_converter.outbox.throttle) == \
+        pytest.approx(expected_control_command.throttle)
+    assert pytest.approx(control_command_converter.outbox.brake) == \
+        pytest.approx(expected_control_command.brake)
+
+
+def test_steering_left_control_command():
+    fl_max_left_angle = 48.99
+    fr_max_left_angle = 35.077
+    average_max_left_angle = (fl_max_left_angle + fr_max_left_angle) / 2
+    expected_steering_tire_angle = np.radians(average_max_left_angle)
+    input_control_command = AckermannControlCommand()
+    input_control_command.lateral.steering_tire_angle = expected_steering_tire_angle
+
+    expected_control_command = CarlaEgoVehicleControl()
+    expected_control_command.steer = -1.0
+
+    control_command_converter = ControlCommandConverter()
+    control_command_converter.inbox = input_control_command
+    control_command_converter.convert()
+
+    assert pytest.approx(control_command_converter.outbox.steer) == \
+        pytest.approx(expected_control_command.steer)
+
+
+def test_steering_right_control_command():
+    fl_max_right_angle = -48.99
+    fr_max_right_angle = -35.077
+    average_max_right_angle = (fl_max_right_angle + fr_max_right_angle) / 2
+    expected_steering_tire_angle = np.radians(average_max_right_angle)
+    input_control_command = AckermannControlCommand()
+    input_control_command.lateral.steering_tire_angle = expected_steering_tire_angle
+
+    expected_control_command = CarlaEgoVehicleControl()
+    expected_control_command.steer = 1.0
+
+    control_command_converter = ControlCommandConverter()
+    control_command_converter.inbox = input_control_command
+    control_command_converter.convert()
+
+    assert pytest.approx(control_command_converter.outbox.steer) == \
+        pytest.approx(expected_control_command.steer)
+
+
+def test_gear_control_command():
+    input_control_command = AckermannControlCommand()
+
+    expected_control_command = CarlaEgoVehicleControl()
+    expected_control_command.manual_gear_shift = False
+
+    control_command_converter = ControlCommandConverter()
+    control_command_converter.inbox = input_control_command
+    control_command_converter.convert()
+
+    assert pytest.approx(control_command_converter.outbox.manual_gear_shift) == \
+        pytest.approx(expected_control_command.manual_gear_shift)
+
+
+def test_control_comman_invalid_input():
+    class UnexpectedInput():
+        pass
+    input_invalid = UnexpectedInput()
+    control_command_converter = ControlCommandConverter()
+    control_command_converter.inbox = input_invalid
+    with pytest.raises(RuntimeError):
+        control_command_converter.convert()
