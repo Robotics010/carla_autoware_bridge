@@ -22,9 +22,11 @@
 
 import time
 
-from autoware_auto_vehicle_msgs.msg import VelocityReport
+from autoware_auto_vehicle_msgs.msg import SteeringReport, VelocityReport
 from carla_autoware_bridge.bridge import AutowareBridge
+from carla_msgs.msg import CarlaEgoVehicleStatus
 from nav_msgs.msg import Odometry
+import numpy as np
 import pytest
 import rclpy
 from rclpy.node import Node
@@ -35,26 +37,46 @@ class BridgeTester(Node):
     def __init__(self) -> None:
         super().__init__('bridge_tester')
 
+        # Publishers
         self.odometry = None
-        self.is_received = False
-        self.velocity_report = None
-
         self._odometry_publisher = self.create_publisher(
             Odometry, '/carla/ego_vehicle/odometry', 1)
+
+        self.vehicle_status = None
+        self._vehicle_status_publisher = self.create_publisher(
+            CarlaEgoVehicleStatus, '/carla/ego_vehicle/vehicle_status', 1)
+
+        # Subscribers
+        self.is_velocity_report_received = False
+        self.velocity_report = None
         self._velocity_report_subscriber = self.create_subscription(
             VelocityReport, '/carla/ego_vehicle/velocity_status',
             self._velocity_report_callback, 1)
         self._velocity_report_subscriber
 
+        self.is_steering_status_received = False
+        self.steering_status = None
+        self._steering_status_subscriber = self.create_subscription(
+            SteeringReport, '/carla/ego_vehicle/steering_status',
+            self._steering_status_callback, 1)
+        self._steering_status_subscriber
+
     def _velocity_report_callback(self, velocity_report_msg):
         self.velocity_report = velocity_report_msg
-        self.is_received = True
+        self.is_velocity_report_received = True
+
+    def _steering_status_callback(self, steering_status_msg):
+        self.steering_status = steering_status_msg
+        self.is_steering_status_received = True
 
     def publish_odometry(self):
         self._odometry_publisher.publish(self.odometry)
 
+    def publish_vehicle_status(self):
+        self._vehicle_status_publisher.publish(self.vehicle_status)
 
-def test_bridge_init():
+
+def test_velocity_report():
     rclpy.init()
     bridge = AutowareBridge()
 
@@ -75,10 +97,10 @@ def test_bridge_init():
     bridge_tester.publish_odometry()
 
     start_time = time.time()
-    while not bridge_tester.is_received:
+    while not bridge_tester.is_velocity_report_received:
         rclpy.spin_once(bridge, timeout_sec=0.001)
         rclpy.spin_once(bridge_tester, timeout_sec=0.001)
-        if time.time() - start_time > 1.0:
+        if time.time() - start_time > 0.1:
             raise RuntimeError('Exceeded the waiting timer for receiving odom msg!')
 
     assert pytest.approx(bridge_tester.velocity_report.heading_rate) == \
@@ -88,3 +110,33 @@ def test_bridge_init():
     assert pytest.approx(bridge_tester.velocity_report.lateral_velocity) == \
         pytest.approx(expected_velocity_report.lateral_velocity)
     rclpy.shutdown()
+
+
+def test_steering_status():
+    rclpy.init()
+    bridge = AutowareBridge()
+
+    input_vehicle_status = CarlaEgoVehicleStatus()
+    input_vehicle_status.control.steer = 1.0
+
+    fl_max_right_angle = 35.077
+    fr_max_right_angle = 48.99
+    average_max_right_angle = (fl_max_right_angle + fr_max_right_angle) / 2
+
+    expected_steering_tire_angle = -np.radians(average_max_right_angle)
+    expected_steering_status = SteeringReport()
+    expected_steering_status.steering_tire_angle = expected_steering_tire_angle
+
+    bridge_tester = BridgeTester()
+    bridge_tester.vehicle_status = input_vehicle_status
+    bridge_tester.publish_vehicle_status()
+
+    start_time = time.time()
+    while not bridge_tester.is_steering_status_received:
+        rclpy.spin_once(bridge, timeout_sec=0.001)
+        rclpy.spin_once(bridge_tester, timeout_sec=0.001)
+        if time.time() - start_time > 1.0:
+            raise RuntimeError('Exceeded the waiting timer for receiving steering_status msg!')
+
+    assert pytest.approx(bridge_tester.steering_status.steering_tire_angle) == \
+        pytest.approx(expected_steering_status.steering_tire_angle)

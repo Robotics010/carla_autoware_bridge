@@ -152,6 +152,7 @@ def generate_launch_description():
             ],
             remappings=[
                 ('/carla/ego_vehicle/velocity_status', '/vehicle/status/velocity_status'),
+                ('/carla/ego_vehicle/steering_status', '/vehicle/status/steering_status'),
             ],
         )
     ])
