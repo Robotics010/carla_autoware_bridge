@@ -168,7 +168,7 @@ def test_control_command():
     bridge = AutowareBridge()
 
     input_control_command = AckermannControlCommand()
-    input_control_command.longitudinal.acceleration = 7.366
+    input_control_command.longitudinal.acceleration = 1.842
 
     expected_control_command = CarlaEgoVehicleControl()
     expected_control_command.throttle = 1.0

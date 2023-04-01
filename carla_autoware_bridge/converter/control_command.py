@@ -35,14 +35,14 @@ class ControlCommandConverter(Converter):
         self._angle_to_steer_polynomial = self._calculate_angle_to_steer_polynomial()
 
     def _calculate_accel_to_cmd_polynomial(self):
-        x = [0.0, 7.366]
+        x = [0.0, 1.842]
         y = [0.0, 1.0]
         polynomial_coefficients = np.polyfit(x, y, 1)
         accel_to_cmd_polynomial = np.poly1d(polynomial_coefficients)
         return accel_to_cmd_polynomial
 
     def _calculate_deaccel_to_cmd_polynomial(self):
-        x = [-24.67, 0.0]
+        x = [-6.168, 0.0]
         y = [1.0, 0.0]
         polynomial_coefficients = np.polyfit(x, y, 1)
         deaccel_to_cmd_polynomial = np.poly1d(polynomial_coefficients)
