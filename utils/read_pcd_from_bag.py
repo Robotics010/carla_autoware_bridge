@@ -40,9 +40,11 @@ def convert_poincloud_to_dict(pointcloud: PointCloud2) -> dict:
     return output
 
 def main():
-    bag_path = '/home/robo/rosbag/rosbag2_2023_04_07-01_30_11'
+    bag_path = '/home/robo/rosbag/rosbag2_2023_04_07-02_30_39'
     pcd_path = '/home/robo/carla-autoware-ws/src/carla_autoware_bridge/test/data/pcd.json'
     pcd_ex_path = '/home/robo/carla-autoware-ws/src/carla_autoware_bridge/test/data/pcd_ex.json'
+    pcd_carla_path = '/home/robo/carla-autoware-ws/src/carla_autoware_bridge/test/data/pcd_carla.json'
+    
     serialization_format = 'cdr'
     storage_id = 'sqlite3'
     storage_options = rosbag2_py.StorageOptions(
@@ -72,6 +74,11 @@ def main():
             assert isinstance(msg, PointCloud2)
             msg_dict = convert_poincloud_to_dict(msg)
             with open(pcd_ex_path, 'w') as file_handler:
+                json.dump(msg_dict, file_handler, indent=2)
+        elif topic == '/carla/ego_vehicle/lidar':
+            assert isinstance(msg, PointCloud2)
+            msg_dict = convert_poincloud_to_dict(msg)
+            with open(pcd_carla_path, 'w') as file_handler:
                 json.dump(msg_dict, file_handler, indent=2)
 
 if __name__ == '__main__':
