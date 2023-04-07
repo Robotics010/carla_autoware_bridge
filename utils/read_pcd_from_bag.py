@@ -40,7 +40,7 @@ def convert_poincloud_to_dict(pointcloud: PointCloud2) -> dict:
     return output
 
 def main():
-    bag_path = '/home/robo/rosbag/rosbag2_2023_04_07-02_30_39'
+    bag_path = '/home/robo/rosbag/rosbag2_2023_04_07-03_02_02'
     pcd_path = '/home/robo/carla-autoware-ws/src/carla_autoware_bridge/test/data/pcd.json'
     pcd_ex_path = '/home/robo/carla-autoware-ws/src/carla_autoware_bridge/test/data/pcd_ex.json'
     pcd_carla_path = '/home/robo/carla-autoware-ws/src/carla_autoware_bridge/test/data/pcd_carla.json'
