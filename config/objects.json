@@ -53,12 +53,12 @@
                     "type": "sensor.lidar.ray_cast",
                     "id": "lidar",
                     "spawn_point": {"x": 0.900, "y": 0.0, "z": 2.000, "roll": -0.0671587, "pitch": 0.8924743, "yaw": 88.2177714},
-                    "range": 245,
-                    "channels": 128,
-                    "points_per_second": 1280000,
-                    "upper_fov": 15.0,
-                    "lower_fov": -25.0,
-                    "rotation_frequency": 10,
+                    "range": 50,
+                    "channels": 32,
+                    "points_per_second": 320000,
+                    "upper_fov": 2.0,
+                    "lower_fov": -26.8,
+                    "rotation_frequency": 20,
                     "noise_stddev": 0.0
                 },
                 {
