@@ -23,7 +23,13 @@ Currently [some problems](troubleshooting.md) might occur if you are using galac
 
 ## Step 3. carla-ros-bridge installation
 
-Clone [`carla-ros-bridge`](https://github.com/carla-simulator/ros-bridge/tree/0.9.12) to your workspace and build it with the following commands:
+Clone my fork of [`carla-ros-bridge`](https://github.com/Robotics010/ros-bridge) to your workspace. This fork has several changes:
+
+* change imu frame_id to `tamagawa/imu_link`
+* change lidar frame_id to `velodyne_top`
+* add ring field to lidar messages
+
+And build it with the following commands:
 
 ```
 source /opt/ros/galactic/setup.bash
