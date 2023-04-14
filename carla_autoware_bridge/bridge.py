@@ -23,11 +23,13 @@
 from autoware_auto_control_msgs.msg import AckermannControlCommand
 from autoware_auto_vehicle_msgs.msg import SteeringReport, VelocityReport
 from carla_autoware_bridge.converter.control_command import ControlCommandConverter
+from carla_autoware_bridge.converter.lidar_ex import LidarExtendedConverter
 from carla_autoware_bridge.converter.steering_status import SteeringStatusConverter
 from carla_autoware_bridge.converter.velocity_report import VelocityReportConverter
 from carla_msgs.msg import CarlaEgoVehicleControl, CarlaEgoVehicleStatus
 from nav_msgs.msg import Odometry
 from rclpy.node import Node
+from sensor_msgs.msg import PointCloud2
 from std_msgs.msg import Header
 
 
@@ -38,6 +40,7 @@ class AutowareBridge(Node):
         self._velocity_report_converter = VelocityReportConverter()
         self._steering_status_converter = SteeringStatusConverter()
         self._control_command_converter = ControlCommandConverter()
+        self._lidar_ex_converter = LidarExtendedConverter()
 
         self._odometry_subscriber = self.create_subscription(
             Odometry, '/carla/ego_vehicle/odometry',
@@ -51,6 +54,10 @@ class AutowareBridge(Node):
             AckermannControlCommand, '/control/command/control_cmd',
             self._ackermann_control_command_callback, 1)
 
+        self._lidar_subscriber = self.create_subscription(
+            PointCloud2, '/carla/ego_vehicle/lidar',
+            self._lidar_callback, 1)
+
         self._velocity_report_publisher = self.create_publisher(
             VelocityReport, '/carla/ego_vehicle/velocity_status', 1)
 
@@ -59,6 +66,9 @@ class AutowareBridge(Node):
 
         self._vehicle_control_command_publisher = self.create_publisher(
             CarlaEgoVehicleControl, '/carla/ego_vehicle/vehicle_control_cmd', 1)
+
+        self._lidar_ex_publisher = self.create_publisher(
+            PointCloud2, '/carla/ego_vehicle/lidar_ex', 1)
 
     def _odometry_callback(self, odometry_msg):
         self._velocity_report_converter.inbox = odometry_msg
@@ -89,3 +99,14 @@ class AutowareBridge(Node):
         header.stamp = self.get_clock().now().to_msg()
         vehicle_control_command_msg.header = header
         self._vehicle_control_command_publisher.publish(vehicle_control_command_msg)
+
+    def _lidar_callback(self, lidar_msg):
+        self._lidar_ex_converter.inbox = lidar_msg
+        self._lidar_ex_converter.convert()
+
+        lidar_ex_msg = self._lidar_ex_converter.outbox
+        header = Header()
+        header.stamp = self.get_clock().now().to_msg()
+        header.frame_id = lidar_msg.header.frame_id
+        lidar_ex_msg.header = header
+        self._lidar_ex_publisher.publish(lidar_ex_msg)

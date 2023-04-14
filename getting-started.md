@@ -1,4 +1,4 @@
-This tutotial helps to setup and launch autoware simulation with CARLA simulator.
+This tutorial helps to setup and launch autoware simulation with CARLA simulator.
 
 Warning! This is **Work in Progress** tutorial. Reports and improvement suggestions are very welcome.
 
@@ -19,11 +19,17 @@ Check the CARLA with [Running CARLA steps](https://carla.readthedocs.io/en/0.9.1
 
 Install [Autoware Universe](https://autowarefoundation.github.io/autoware-documentation/galactic/installation/autoware/source-installation/) from `galactic` branch.
 
-Currently [some problems](troubleshooting.md) might occur if you are using galactic docker version. If so, use source installation instead.
+Currently some problems might occur if you are using galactic docker version (such as [galactic or foxy rviz error](https://github.com/ros2/rviz/issues/753)). If so, use source installation instead.
 
 ## Step 3. carla-ros-bridge installation
 
-Clone [`carla-ros-bridge`](https://github.com/carla-simulator/ros-bridge/tree/0.9.12) to your workspace and build it with the following commands:
+Clone my fork of [`carla-ros-bridge`](https://github.com/Robotics010/ros-bridge) to your workspace. This fork has several changes:
+
+* change imu frame_id to `tamagawa/imu_link`
+* change lidar frame_id to `velodyne_top`
+* add ring field to lidar messages
+
+And build it with the following commands:
 
 ```
 source /opt/ros/galactic/setup.bash
@@ -34,7 +40,7 @@ Then download and prepare the map for CARLA town 1. For that clone [autoware-con
 
 ## Step 4. carla-autoware-bridge installation
 
-Clone ['carla-autoware-bridge'](https://github.com/Robotics010/carla_autoware_bridge) to your workspace and build it with the following commands:
+Clone [`carla-autoware-bridge`](https://github.com/Robotics010/carla_autoware_bridge) to your workspace and build it with the following commands:
 
 ```
 source /opt/ros/galactic/setup.bash
@@ -47,30 +53,9 @@ Since `carla_autoware_bridge` is still a work in progress solution, then not all
 
 Currently you need to do the following as well to get the autoware stack functioning:
 
-1. Disable lidar sensing `ring_outlier_filter`
-   * because `carla_autoware_bridge` doesn't provide `azimuth` and other reqquired fields in a `PointCloud` message yet
 1. Disable planning `surround_obstacle_checker`
-   * because lidar sensor placement and lidar crop filters are not adjusted finely for the vehicle, so it results in points from th vehicle recognized as an obstacle points
+   * because of lidar sensor placement and that lidar crop filters are not adjusted finely for the vehicle, so it results in points from th vehicle recognized as an obstacle points
 1. Move out `shift_decider`, `vehicle_cmd_gate` and `operation_mode_transition_manager` nodes from `control_container`, but only if you have a problem starting them
-
-### Disable `ring_outlier_filter`
-
-Go to `src/sensor_kit/sample_sensor_kit_launch/common_sensor_launch/launch/velodyne_node_container.launch.py` and disable `ring_outlier_filter` by commenting out the `ring_outlier_filter` node appending to `nodes` list as following:
-
-```
-    # nodes.append(
-    #     ComposableNode(
-    #         package="pointcloud_preprocessor",
-    #         plugin="pointcloud_preprocessor::RingOutlierFilterComponent",
-    #         name="ring_outlier_filter",
-    #         remappings=[
-    #             ("input", "rectified/pointcloud_ex"),
-    #             ("output", "outlier_filtered/pointcloud"),
-    #         ],
-    #         extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
-    #     )
-    # )
-```
 
 ### Disable `surround_obstacle_checker`
 

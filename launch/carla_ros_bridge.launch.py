@@ -137,7 +137,7 @@ def generate_launch_description():
                 ('/carla/ego_vehicle/rgb_front/image', '/sensing/camera/traffic_light/image_raw'),
                 ('/carla/ego_vehicle/gnss', '/sensing/gnss/ublox/nav_sat_fix'),
                 ('/carla/ego_vehicle/imu', '/sensing/imu/tamagawa/imu_raw'),
-                ('/carla/ego_vehicle/lidar', '/sensing/lidar/top/pointcloud_raw_ex'),
+                ('/carla/ego_vehicle/lidar', '/sensing/lidar/top/pointcloud_raw'),
             ],
         ),
         launch_ros.actions.Node(
@@ -153,6 +153,8 @@ def generate_launch_description():
             remappings=[
                 ('/carla/ego_vehicle/velocity_status', '/vehicle/status/velocity_status'),
                 ('/carla/ego_vehicle/steering_status', '/vehicle/status/steering_status'),
+                ('/carla/ego_vehicle/lidar', '/sensing/lidar/top/pointcloud_raw'),
+                ('/carla/ego_vehicle/lidar_ex', '/sensing/lidar/top/pointcloud_raw_ex'),
             ],
         )
     ])
