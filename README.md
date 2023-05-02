@@ -12,3 +12,7 @@ However there is no official support of the Autoware Universe self-driving open 
 ## Getting started tutorial
 
 Go to [Getting started](getting-started.md) tutorial to setup and launch autoware simulation with CARLA simulator.
+
+### Troubleshooting
+
+Go to [Troubleshooting](troubleshooting.md) section in order to fix some known problems.
