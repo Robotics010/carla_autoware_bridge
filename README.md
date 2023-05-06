@@ -3,7 +3,7 @@ An addition package to `carla_ros_bridge` to connect CARLA simulator to Autoware
 
 Warning! This is **Work in Progress** repository. Reports and improvement suggestions are very welcome.
 
-![demo_with_traffic](images/demo_with_traffic.png)
+![demo](images/demo.png)
 
 ## Why carla_autoware_bridge is required?
 
