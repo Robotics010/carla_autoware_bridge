@@ -70,7 +70,7 @@ Go to autoware/autoware.repos files and use your text editor to add the followin
     version: v0.1
 ```
 
-[`Robotics010/ros-bridge`](https://github.com/Robotics010/ros-bridge) is a fork from (`carla-simulator/ros-bridge`)[https://github.com/carla-simulator/ros-bridge] and have [some changes](https://github.com/Robotics010/ros-bridge/blob/b183848fc5fa35a35a6f3381466ea245f14cfc29/CHANGELOG.md#fork-changes), that were required from Autoware.
+[`Robotics010/ros-bridge`](https://github.com/Robotics010/ros-bridge) is a fork from [`carla-simulator/ros-bridge`](https://github.com/carla-simulator/ros-bridge) and have [some changes](https://github.com/Robotics010/ros-bridge/blob/b183848fc5fa35a35a6f3381466ea245f14cfc29/CHANGELOG.md#fork-changes), that were required from Autoware.
 
 ### 2.3 Set up a workspace
 
