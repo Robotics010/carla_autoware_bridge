@@ -13,7 +13,7 @@ More info is [here](https://stackoverflow.com/questions/75272737/error-invalid-v
 
 ## carla_ros_bridge time-out Error
 
-If you get `Error: time-out of 2000ms while waiting for the simulator, make sure the simulator is ready and connected to localhost:2000`, then you need just restart carla simulator and try again.
+If you get `Error: time-out of 2000ms while waiting for the simulator, make sure the simulator is ready and connected to localhost:2000`, then you need just increase timeout value.
 
 ## Control does not work because of missing nodes
 
