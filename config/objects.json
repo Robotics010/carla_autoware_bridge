@@ -24,6 +24,9 @@
         {
             "type": "vehicle.tesla.model3",
             "id": "ego_vehicle",
+            "attributes": {
+                "color": "223,37,60"
+            },
             "sensors": 
             [
                 {

@@ -1,55 +1,106 @@
-This tutorial helps to setup and launch autoware simulation with CARLA simulator.
-
-Warning! This is **Work in Progress** tutorial. Reports and improvement suggestions are very welcome.
+This tutorial helps with setup and launch Autoware with CARLA simulator. Reports and improvement suggestions are very welcome.
 
 ## Requirements
 
 * Ubuntu 20.04
-* ROS2 Galactic
 
-## Step 1. CARLA installation 
+During the tutorial ROS 2 Galactic will be installed.
+
+### Update and install git
+
+Before go to the following sections update your system and install git.
+
+```
+sudo apt-get -y update
+sudo apt-get -y install git
+```
+
+## Section 1 CARLA installation
+
+### 1.1 CARLA server and client installation
 
 Install [CARLA server 0.9.12](https://carla.readthedocs.io/en/0.9.12/start_quickstart/#carla-installation) and [carla client 0.9.12](https://carla.readthedocs.io/en/0.9.12/start_quickstart/#carla-0912).
 
-Currently `carla-ros-bridge` has the latest 0.9.12 tag, so it is recommended to use exact the same CARLA simulator and client.
+Currently `carla-ros-bridge` has the latest `0.9.12` tag, so it is recommended to use exact the same CARLA simulator and client.
 
 Check the CARLA with [Running CARLA steps](https://carla.readthedocs.io/en/0.9.12/start_quickstart/#running-carla) if needed.
 
-## Step 2. Autoware installation
+### 1.2 Prepare map of CARLA town
 
-Install [Autoware Universe](https://autowarefoundation.github.io/autoware-documentation/galactic/installation/autoware/source-installation/) from `galactic` branch.
+Clone [autoware-contents](https://bitbucket.org/carla-simulator/autoware-contents/src/master/), copy `maps/point_cloud_maps/Town01.pcd` and `maps/vector_maps/lanelet2/Town01.osm` to `~/autoware_map/carla-town-1/` and rename to `pointcloud_map.pcd` and `lanelet2_map.osm` accordingly.
 
-## Step 3. carla-ros-bridge installation
+## Section 2 Autoware and carla-autoware-bridge installation
 
-Clone my fork of [`carla-ros-bridge`](https://github.com/Robotics010/ros-bridge) to your workspace. This fork has several changes:
+This step describes how to install [Autoware Universe](https://autowarefoundation.github.io/autoware-documentation/galactic/installation/autoware/source-installation/) from `galactic` branch via **Source Installation** and how to install [`carla-autoware-bridge`](https://github.com/Robotics010/carla_autoware_bridge) to allow Autoware-CARLA communication.
 
-* change imu frame_id to `tamagawa/imu_link`
-* change lidar frame_id to `velodyne_top`
-* add ring field to lidar messages
+### 2.1 Set up a development environment
 
-And build it with the following commands:
+Clone `autowarefoundation/autoware` repo and move to the directory.
+
+```
+git clone https://github.com/autowarefoundation/autoware.git -b galactic
+cd autoware
+```
+
+Install the dependencies using the provided Ansible script.
+
+```
+./setup-dev-env.sh
+```
+
+### 2.2 Add repositories required for CARLA communication
+
+Add `ros-bridge`, `carla_autoware_bridge` and `carla_tesla_model3_description` repos to `autoware.repos` list.
+
+Go to autoware/autoware.repos files and use your text editor to add the following new repositories.
+
+```
+  # carla
+  carla/ros-bridge:
+    type: git
+    url: https://github.com/Robotics010/ros-bridge.git
+    version: b183848fc5fa35a35a6f3381466ea245f14cfc29
+  carla/carla_autoware_bridge:
+    type: git
+    url: https://github.com/Robotics010/carla_autoware_bridge.git
+    version: v0.1
+  carla/carla_tesla_model3_description:
+    type: git
+    url: https://github.com/Robotics010/carla_tesla_model3_description.git
+    version: v0.1
+```
+
+[`Robotics010/ros-bridge`](https://github.com/Robotics010/ros-bridge) is a fork from [`carla-simulator/ros-bridge`](https://github.com/carla-simulator/ros-bridge) and have [some changes](https://github.com/Robotics010/ros-bridge/blob/b183848fc5fa35a35a6f3381466ea245f14cfc29/CHANGELOG.md#fork-changes), that were required from Autoware.
+
+### 2.3 Set up a workspace
+
+Create the src directory and clone repositories into it. Autoware uses [vcstool](https://github.com/dirk-thomas/vcstool) to construct workspaces.
+
+```
+cd autoware
+mkdir src
+vcs import src < autoware.repos
+```
+
+Install dependent ROS packages.
 
 ```
 source /opt/ros/galactic/setup.bash
+rosdep install -y --from-paths src --ignore-src --rosdistro $ROS_DISTRO
+```
+
+And build the workspace.
+
+```
 colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
 ```
 
-Then download and prepare the map for CARLA town 1. For that clone [autoware-contents](https://bitbucket.org/carla-simulator/autoware-contents/src/master/), copy `maps/point_cloud_maps/Town01.pcd` and `maps/vector_maps/lanelet2/Town01.osm` to `~/autoware_map/carla-town-1/` and rename to `pointcloud_map.pcd` and `lanelet2_map.osm` accordingly.
+## Section 3 Launching ad hoc simulation
 
-## Step 4. carla-autoware-bridge installation
+Here is a list of steps and commands to launch Autoware Universe ad hoc simulation with CARLA.
 
-Clone [`carla-autoware-bridge`](https://github.com/Robotics010/carla_autoware_bridge) and [`carla_tesla_model3_description`](https://github.com/Robotics010/carla_tesla_model3_description.git) packages to your workspace and build it with the following commands:
+### 3.1 Launch CARLA server
 
-```
-source /opt/ros/galactic/setup.bash
-colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
-```
-
-## Step 5. Launch ad hoc simulation
-
-Here is a list of launch commands to launch Autoware Universe ad hoc simulation with CARLA.
-
-### Launch CARLA server:
 ```
 cd to/carla/folder
 ./CarlaUE4.sh
@@ -62,46 +113,27 @@ You might find these arguments useful while executing CARLA:
 * `-carla-rpc-port=3000` - use other than 2000 default port for RPC service's port
 * `-quality-level=Low` - use low quality level mode for a minimal video memory consumption
 
-### Launch carla_ros_bridge and carla_autoware_bridge
+### 3.2 Launch carla_autoware_bridge
 
-In order to launch `carla_ros_bridge` and `carla_autoware_bridge`:
-```
-source /opt/ros/galactic/setup.bash
-source ~/autoware/install/setup.bash
-ros2 launch carla_autoware_bridge carla_ros_bridge.launch.py
-```
-
-where `~/autoware` is a path to your workspace with cloned `carla_ros_bridge` and `carla_autoware_bridge`.
-
-Here you can add `port:=3000` argument to switch to a different CARLA port for it's RPC port.
-
-### Spawn ego vehicle
-
-You need to spawn a vehicle with it's sensors:
+Launch `carla_autoware_bridge`, which spawns ego vehicle as well. 
 
 ```
 source /opt/ros/galactic/setup.bash
 source ~/autoware/install/setup.bash
-ros2 launch carla_autoware_bridge carla_autoware_ego_vehicle.launch.py
+ros2 launch carla_autoware_bridge carla_autoware_demo.launch.py
 ```
 
-where `~/autoware` is a path to your workspace with cloned `carla_ros_bridge` and `carla_autoware_bridge`.
+where `~/autoware` is a path to your workspace.
 
-### (Optional) Launch manual control window
+Here you can add the following arguments
 
-You can find it useful to launch and manual control window. It shows your ego vehicle from a third view in the CARLA world. And you can switch it to manual control from keyboard if it is necessary.
+* `port:=3000` to switch to a different CARLA port for it's RPC port
+* `timeout:=10` to increase waiting time of loading a CARLA town before raising error
+* `view:=true` to show third-person-view window
 
-```
-source /opt/ros/galactic/setup.bash
-source ~/autoware/install/setup.bash
-ros2 launch carla_manual_control carla_manual_control.launch.py
-```
+### 3.3 Launch Autoware Universe
 
-where `~/autoware` is a path to your workspace with cloned `carla_ros_bridge`.
-
-### Launch Autoware Universe
-
-And finally launch Autoware software stack with the following commands:
+And launch Autoware software stack with the following commands:
 
 ```
 source /opt/ros/galactic/setup.bash
@@ -109,8 +141,26 @@ source ~/autoware/install/setup.bash
 ros2 launch autoware_launch e2e_simulator.launch.xml map_path:=$HOME/autoware_map/carla-town-1 vehicle_model:=carla_tesla_model3 sensor_model:=sample_sensor_kit
 ```
 
-where `~/autoware` is a path to your workspace with cloned Autoware Universe installed.
+At this step your desktop should look like:
 
-### Troubleshooting
+![state_after_start](images/state_after_start.png)
 
-Go to [Troubleshooting](troubleshooting.md) section in order to fix some known problems.
+### 3.4 Set start location
+
+Set ego vehicle start location using 2D Pose Estimate tool (highlighted by red color)
+
+![pose_estimate_tool](images/pose_estimate_tool.png)
+
+Optionally you can attach current view to the vehicle by selecting `base_link` as `Target Frame`.
+
+![target_frame](images/target_frame.png)
+
+### 3.5 Send route and engage
+
+Finally send target location and allow engaging vehicle
+
+![engaging_vehicle](images/engaging_vehicle.png)
+
+## See also
+
+* Go to [Troubleshooting](troubleshooting.md) section in order to fix some known problems.
