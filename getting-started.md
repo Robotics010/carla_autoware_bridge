@@ -59,15 +59,19 @@ Go to autoware/autoware.repos files and use your text editor to add the followin
   carla/ros-bridge:
     type: git
     url: https://github.com/Robotics010/ros-bridge.git
-    version: b183848fc5fa35a35a6f3381466ea245f14cfc29
+    version: master
+  carla/astuff_sensor_msgs:
+    type: git
+    url: https://github.com/astuff/astuff_sensor_msgs.git
+    version: master
   carla/carla_autoware_bridge:
     type: git
     url: https://github.com/Robotics010/carla_autoware_bridge.git
-    version: v0.1
+    version: master
   carla/carla_tesla_model3_description:
     type: git
     url: https://github.com/Robotics010/carla_tesla_model3_description.git
-    version: v0.1
+    version: master
 ```
 
 [`Robotics010/ros-bridge`](https://github.com/Robotics010/ros-bridge) is a fork from [`carla-simulator/ros-bridge`](https://github.com/carla-simulator/ros-bridge) and have [some changes](https://github.com/Robotics010/ros-bridge/blob/b183848fc5fa35a35a6f3381466ea245f14cfc29/CHANGELOG.md#fork-changes), that were required from Autoware.
@@ -79,7 +83,7 @@ Create the src directory and clone repositories into it. Autoware uses [vcstool]
 ```
 cd autoware
 mkdir src
-vcs import src < autoware.repos
+vcs import --recursive src < autoware.repos
 ```
 
 Install dependent ROS packages.
