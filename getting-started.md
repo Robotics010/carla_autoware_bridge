@@ -60,6 +60,10 @@ Go to autoware/autoware.repos files and use your text editor to add the followin
     type: git
     url: https://github.com/Robotics010/ros-bridge.git
     version: b183848fc5fa35a35a6f3381466ea245f14cfc29
+  carla/astuff_sensor_msgs:
+    type: git
+    url: https://github.com/astuff/astuff_sensor_msgs.git
+    version: a07119d26d202023e5239a17007e93b1af4d9e32
   carla/carla_autoware_bridge:
     type: git
     url: https://github.com/Robotics010/carla_autoware_bridge.git
@@ -79,7 +83,7 @@ Create the src directory and clone repositories into it. Autoware uses [vcstool]
 ```
 cd autoware
 mkdir src
-vcs import src < autoware.repos
+vcs import --recursive src < autoware.repos
 ```
 
 Install dependent ROS packages.
