@@ -43,32 +43,32 @@ class AutowareBridge(Node):
         self._lidar_ex_converter = LidarExtendedConverter()
 
         self._odometry_subscriber = self.create_subscription(
-            Odometry, '/carla/ego_vehicle/odometry',
+            Odometry, '~/input/odometry',
             self._odometry_callback, 1)
 
         self._vehicle_status_subscriber = self.create_subscription(
-            CarlaEgoVehicleStatus, '/carla/ego_vehicle/vehicle_status',
+            CarlaEgoVehicleStatus, '~/input/steering',
             self._vehicle_status_callback, 1)
 
         self._ackermann_control_command_subscriber = self.create_subscription(
-            AckermannControlCommand, '/control/command/control_cmd',
+            AckermannControlCommand, '~/input/control',
             self._ackermann_control_command_callback, 1)
 
         self._lidar_subscriber = self.create_subscription(
-            PointCloud2, '/carla/ego_vehicle/lidar',
+            PointCloud2, '~/input/lidar',
             self._lidar_callback, 1)
 
         self._velocity_report_publisher = self.create_publisher(
-            VelocityReport, '/carla/ego_vehicle/velocity_status', 1)
+            VelocityReport, '~/output/velocity_status', 1)
 
         self._steering_status_publisher = self.create_publisher(
-            SteeringReport, '/carla/ego_vehicle/steering_status', 1)
+            SteeringReport, '~/output/steering_status', 1)
 
         self._vehicle_control_command_publisher = self.create_publisher(
-            CarlaEgoVehicleControl, '/carla/ego_vehicle/vehicle_control_cmd', 1)
+            CarlaEgoVehicleControl, '~/output/control', 1)
 
         self._lidar_ex_publisher = self.create_publisher(
-            PointCloud2, '/carla/ego_vehicle/lidar_ex', 1)
+            PointCloud2, '~/output/lidar_ex', 1)
 
     def _odometry_callback(self, odometry_msg):
         self._velocity_report_converter.inbox = odometry_msg

@@ -151,10 +151,15 @@ def generate_launch_description():
                 }
             ],
             remappings=[
-                ('/carla/ego_vehicle/velocity_status', '/vehicle/status/velocity_status'),
-                ('/carla/ego_vehicle/steering_status', '/vehicle/status/steering_status'),
-                ('/carla/ego_vehicle/lidar', '/sensing/lidar/top/pointcloud_raw'),
-                ('/carla/ego_vehicle/lidar_ex', '/sensing/lidar/top/pointcloud_raw_ex'),
+                ('~/input/odometry', '/carla/ego_vehicle/odometry'),
+                ('~/input/steering', '/carla/ego_vehicle/vehicle_status'),
+                ('~/input/control', '/control/command/control_cmd'),
+                ('~/input/lidar', '/sensing/lidar/top/pointcloud_raw'),
+                ('~/output/velocity_status', '/vehicle/status/velocity_status'),
+                ('~/output/steering_status', '/vehicle/status/steering_status'),
+                ('~/output/actuation_status', '/vehicle/status/actuation_status'),
+                ('~/output/control', '/carla/ego_vehicle/vehicle_control_cmd'),
+                ('~/output/lidar_ex', '/sensing/lidar/top/pointcloud_raw_ex'),
             ],
         )
     ])
