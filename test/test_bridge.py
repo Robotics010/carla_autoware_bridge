@@ -22,10 +22,11 @@
 
 import time
 
-from autoware_auto_control_msgs.msg import AckermannControlCommand
 from autoware_auto_vehicle_msgs.msg import SteeringReport, VelocityReport
 from carla_autoware_bridge.bridge import AutowareBridge
 from carla_msgs.msg import CarlaEgoVehicleControl, CarlaEgoVehicleStatus
+from tier4_vehicle_msgs.msg import ActuationCommandStamped, ActuationStatusStamped
+
 from nav_msgs.msg import Odometry
 import numpy as np
 import pytest
@@ -41,39 +42,46 @@ class BridgeTester(Node):
         # Publishers
         self.odometry = None
         self._odometry_publisher = self.create_publisher(
-            Odometry, '/carla/ego_vehicle/odometry', 1)
+            Odometry, '/carla_autoware_bridge/input/odometry', 1)
 
         self.vehicle_status = None
         self._vehicle_status_publisher = self.create_publisher(
-            CarlaEgoVehicleStatus, '/carla/ego_vehicle/vehicle_status', 1)
+            CarlaEgoVehicleStatus, '/carla_autoware_bridge/input/steering', 1)
 
-        self.ackermann_control_command = None
-        self._ackermann_control_command_publisher = self.create_publisher(
-            AckermannControlCommand, '/control/command/control_cmd', 1)
+        self.control_command = None
+        self._control_command_publisher = self.create_publisher(
+            ActuationCommandStamped, '/carla_autoware_bridge/input/actuation', 1)
 
         # Subscribers
         self.is_velocity_report_received = False
         self.velocity_report = None
         self._velocity_report_subscriber = self.create_subscription(
-            VelocityReport, '/carla/ego_vehicle/velocity_status',
+            VelocityReport, '/carla_autoware_bridge/output/velocity_status',
             self._velocity_report_callback, 1)
         self._velocity_report_subscriber
 
         self.is_steering_status_received = False
         self.steering_status = None
         self._steering_status_subscriber = self.create_subscription(
-            SteeringReport, '/carla/ego_vehicle/steering_status',
+            SteeringReport, '/carla_autoware_bridge/output/steering_status',
             self._steering_status_callback, 1)
         self._steering_status_subscriber
 
         self.is_vehicle_control_command_received = False
         self.vehicle_control_command = None
         self._vehicle_control_command_subscriber = self.create_subscription(
-            CarlaEgoVehicleControl, '/carla/ego_vehicle/vehicle_control_cmd',
+            CarlaEgoVehicleControl, '/carla_autoware_bridge/output/control',
             self._vehicle_control_command_callback, 1)
         self._vehicle_control_command_subscriber
+        
+        self.is_actuation_status_received = False
+        self.actuation_status = None
+        self._actuation_status_subscriber = self.create_subscription(
+            ActuationStatusStamped, '/carla_autoware_bridge/output/actuation_status',
+            self._actuation_status_callback, 1)
 
     def _velocity_report_callback(self, velocity_report_msg):
+        print(f'velocity report callback')
         self.velocity_report = velocity_report_msg
         self.is_velocity_report_received = True
 
@@ -84,6 +92,10 @@ class BridgeTester(Node):
     def _vehicle_control_command_callback(self, vehicle_control_command_msg):
         self.vehicle_control_command = vehicle_control_command_msg
         self.is_vehicle_control_command_received = True
+    
+    def _actuation_status_callback(self, actuation_status_msg):
+        self.actuation_status = actuation_status_msg
+        self.is_actuation_status_received = True
 
     def publish_odometry(self):
         self._odometry_publisher.publish(self.odometry)
@@ -91,8 +103,8 @@ class BridgeTester(Node):
     def publish_vehicle_status(self):
         self._vehicle_status_publisher.publish(self.vehicle_status)
 
-    def publish_ackermann_control_command(self):
-        self._ackermann_control_command_publisher.publish(self.ackermann_control_command)
+    def publish_control_command(self):
+        self._control_command_publisher.publish(self.control_command)
 
 
 def test_velocity_report():
@@ -167,16 +179,16 @@ def test_control_command():
     rclpy.init()
     bridge = AutowareBridge()
 
-    input_control_command = AckermannControlCommand()
-    input_control_command.longitudinal.acceleration = 1.842
+    input_control_command = ActuationCommandStamped()
+    input_control_command.actuation.accel_cmd = 0.301
 
     expected_control_command = CarlaEgoVehicleControl()
-    expected_control_command.throttle = 1.0
+    expected_control_command.throttle = 0.301
     expected_control_command.brake = 0.0
 
     bridge_tester = BridgeTester()
-    bridge_tester.ackermann_control_command = input_control_command
-    bridge_tester.publish_ackermann_control_command()
+    bridge_tester.control_command = input_control_command
+    bridge_tester.publish_control_command()
 
     start_time = time.time()
     while not bridge_tester.is_vehicle_control_command_received:
@@ -188,5 +200,39 @@ def test_control_command():
 
     assert pytest.approx(bridge_tester.vehicle_control_command.throttle) == \
         pytest.approx(expected_control_command.throttle)
+
+    rclpy.shutdown()
+
+def test_actuation_status():
+    rclpy.init()
+    bridge = AutowareBridge()
+
+    input_vehicle_status = CarlaEgoVehicleStatus()
+    input_vehicle_status.control.throttle = 0.4
+    input_vehicle_status.control.brake = 0.0
+    input_vehicle_status.control.steer = -0.1
+
+    expected_actuation_status = ActuationStatusStamped()
+    expected_actuation_status.status.accel_status = 0.4
+    expected_actuation_status.status.brake_status = 0.0
+    expected_actuation_status.status.steer_status = -0.1
+
+    bridge_tester = BridgeTester()
+    bridge_tester.vehicle_status = input_vehicle_status
+    bridge_tester.publish_vehicle_status()
+
+    start_time = time.time()
+    while not bridge_tester.is_actuation_status_received:
+        rclpy.spin_once(bridge, timeout_sec=0.001)
+        rclpy.spin_once(bridge_tester, timeout_sec=0.001)
+        if time.time() - start_time > 1.0:
+            raise RuntimeError('Exceeded the waiting timer for receiving actuation_status msg!')
+
+    assert pytest.approx(bridge_tester.actuation_status.status.accel_status) == \
+        pytest.approx(expected_actuation_status.status.accel_status)
+    assert pytest.approx(bridge_tester.actuation_status.status.brake_status) == \
+        pytest.approx(expected_actuation_status.status.brake_status)
+    assert pytest.approx(bridge_tester.actuation_status.status.steer_status) == \
+        pytest.approx(expected_actuation_status.status.steer_status)
 
     rclpy.shutdown()

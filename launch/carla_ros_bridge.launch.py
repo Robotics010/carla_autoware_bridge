@@ -153,7 +153,7 @@ def generate_launch_description():
             remappings=[
                 ('~/input/odometry', '/carla/ego_vehicle/odometry'),
                 ('~/input/steering', '/carla/ego_vehicle/vehicle_status'),
-                ('~/input/control', '/control/command/control_cmd'),
+                ('~/input/actuation', '/control/command/actuation_cmd'),
                 ('~/input/lidar', '/sensing/lidar/top/pointcloud_raw'),
                 ('~/output/velocity_status', '/vehicle/status/velocity_status'),
                 ('~/output/steering_status', '/vehicle/status/steering_status'),

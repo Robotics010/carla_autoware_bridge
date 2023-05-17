@@ -23,8 +23,8 @@
 
 import struct
 
-from autoware_auto_control_msgs.msg import AckermannControlCommand
 from autoware_auto_vehicle_msgs.msg import SteeringReport, VelocityReport
+from carla_autoware_bridge.converter.actuation_status import ActuationStatusConverter
 from carla_autoware_bridge.converter.control_command import ControlCommandConverter
 from carla_autoware_bridge.converter.fake import FakeConverter
 from carla_autoware_bridge.converter.lidar_ex import LidarExtendedConverter
@@ -35,6 +35,7 @@ from nav_msgs.msg import Odometry
 import numpy as np
 import pytest
 from sensor_msgs.msg import PointCloud2, PointField
+from tier4_vehicle_msgs.msg import ActuationCommandStamped, ActuationStatusStamped
 
 
 def test_fake_convert_without_setting_inbox():
@@ -172,11 +173,11 @@ def test_steering_status_invalid_input():
 
 
 def test_throttle_control_command():
-    input_control_command = AckermannControlCommand()
-    input_control_command.longitudinal.acceleration = 1.842
+    input_control_command = ActuationCommandStamped()
+    input_control_command.actuation.accel_cmd = 0.301
 
     expected_control_command = CarlaEgoVehicleControl()
-    expected_control_command.throttle = 1.0
+    expected_control_command.throttle = 0.301
     expected_control_command.brake = 0.0
 
     control_command_converter = ControlCommandConverter()
@@ -190,8 +191,8 @@ def test_throttle_control_command():
 
 
 def test_still_control_command():
-    input_control_command = AckermannControlCommand()
-    input_control_command.longitudinal.acceleration = 0.0
+    input_control_command = ActuationCommandStamped()
+    input_control_command.actuation.accel_cmd = 0.0
 
     expected_control_command = CarlaEgoVehicleControl()
     expected_control_command.throttle = 0.0
@@ -208,12 +209,12 @@ def test_still_control_command():
 
 
 def test_brake_control_command():
-    input_control_command = AckermannControlCommand()
-    input_control_command.longitudinal.acceleration = -6.168
+    input_control_command = ActuationCommandStamped()
+    input_control_command.actuation.brake_cmd = 0.205
 
     expected_control_command = CarlaEgoVehicleControl()
     expected_control_command.throttle = 0.0
-    expected_control_command.brake = 1.0
+    expected_control_command.brake = 0.205
 
     control_command_converter = ControlCommandConverter()
     control_command_converter.inbox = input_control_command
@@ -226,15 +227,11 @@ def test_brake_control_command():
 
 
 def test_steering_left_control_command():
-    fl_max_left_angle = 48.99
-    fr_max_left_angle = 35.077
-    average_max_left_angle = (fl_max_left_angle + fr_max_left_angle) / 2
-    expected_steering_tire_angle = np.radians(average_max_left_angle)
-    input_control_command = AckermannControlCommand()
-    input_control_command.lateral.steering_tire_angle = expected_steering_tire_angle
+    input_control_command = ActuationCommandStamped()
+    input_control_command.actuation.steer_cmd = -0.299
 
     expected_control_command = CarlaEgoVehicleControl()
-    expected_control_command.steer = -1.0
+    expected_control_command.steer = 0.407566
 
     control_command_converter = ControlCommandConverter()
     control_command_converter.inbox = input_control_command
@@ -245,15 +242,11 @@ def test_steering_left_control_command():
 
 
 def test_steering_right_control_command():
-    fl_max_right_angle = -48.99
-    fr_max_right_angle = -35.077
-    average_max_right_angle = (fl_max_right_angle + fr_max_right_angle) / 2
-    expected_steering_tire_angle = np.radians(average_max_right_angle)
-    input_control_command = AckermannControlCommand()
-    input_control_command.lateral.steering_tire_angle = expected_steering_tire_angle
+    input_control_command = ActuationCommandStamped()
+    input_control_command.actuation.steer_cmd = 0.299
 
     expected_control_command = CarlaEgoVehicleControl()
-    expected_control_command.steer = 1.0
+    expected_control_command.steer = -0.407566
 
     control_command_converter = ControlCommandConverter()
     control_command_converter.inbox = input_control_command
@@ -264,7 +257,7 @@ def test_steering_right_control_command():
 
 
 def test_gear_control_command():
-    input_control_command = AckermannControlCommand()
+    input_control_command = ActuationCommandStamped()
 
     expected_control_command = CarlaEgoVehicleControl()
     expected_control_command.manual_gear_shift = False
@@ -486,3 +479,36 @@ def test_lidar_ex_invalid_input():
     lidar_ex_converter.inbox = input_invalid
     with pytest.raises(RuntimeError):
         lidar_ex_converter.convert()
+
+def test_actuation_status():
+    
+    input_vehicle_status = CarlaEgoVehicleStatus()
+    input_vehicle_status.control.throttle = 0.4
+    input_vehicle_status.control.brake = 0.0
+    input_vehicle_status.control.steer = -0.1
+
+    expected_actuation_status = ActuationStatusStamped()
+    expected_actuation_status.status.accel_status = 0.4
+    expected_actuation_status.status.brake_status = 0.0
+    expected_actuation_status.status.steer_status = -0.1
+
+    actuation_status_converter = ActuationStatusConverter()
+    actuation_status_converter.inbox = input_vehicle_status
+    actuation_status_converter.convert()
+
+    assert pytest.approx(actuation_status_converter.outbox.status.accel_status) == \
+        pytest.approx(expected_actuation_status.status.accel_status)
+    assert pytest.approx(actuation_status_converter.outbox.status.brake_status) == \
+        pytest.approx(expected_actuation_status.status.brake_status)
+    assert pytest.approx(actuation_status_converter.outbox.status.steer_status) == \
+        pytest.approx(expected_actuation_status.status.steer_status)
+
+
+def test_actuation_status_invalid_input():
+    class UnexpectedInput():
+        pass
+    input_invalid = UnexpectedInput()
+    actuation_status_converter = ActuationStatusConverter()
+    actuation_status_converter.inbox = input_invalid
+    with pytest.raises(RuntimeError):
+        actuation_status_converter.convert()

@@ -20,34 +20,18 @@
 #   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #   SOFTWARE.
 
-from autoware_auto_control_msgs.msg import AckermannControlCommand
 from carla_autoware_bridge.converter.converter import Converter
 from carla_msgs.msg import CarlaEgoVehicleControl
 import numpy as np
+from tier4_vehicle_msgs.msg import ActuationCommandStamped
 
 
 class ControlCommandConverter(Converter):
 
     def __init__(self) -> None:
         super().__init__()
-        self._accel_to_cmd_polynomial = self._calculate_accel_to_cmd_polynomial()
-        self._deaccel_to_cmd_polynomial = self._calculate_deaccel_to_cmd_polynomial()
         self._angle_to_steer_polynomial = self._calculate_angle_to_steer_polynomial()
-
-    def _calculate_accel_to_cmd_polynomial(self):
-        x = [0.0, 1.842]
-        y = [0.0, 1.0]
-        polynomial_coefficients = np.polyfit(x, y, 1)
-        accel_to_cmd_polynomial = np.poly1d(polynomial_coefficients)
-        return accel_to_cmd_polynomial
-
-    def _calculate_deaccel_to_cmd_polynomial(self):
-        x = [-6.168, 0.0]
-        y = [1.0, 0.0]
-        polynomial_coefficients = np.polyfit(x, y, 1)
-        deaccel_to_cmd_polynomial = np.poly1d(polynomial_coefficients)
-        return deaccel_to_cmd_polynomial
-
+    
     def _calculate_angle_to_steer_polynomial(self):
         max_left_steer = -1
         max_right_steer = 1
@@ -65,22 +49,14 @@ class ControlCommandConverter(Converter):
         return angle_to_steer_polynomial
 
     def _convert(self):
-        if not isinstance(self._inbox, AckermannControlCommand):
-            raise RuntimeError(f'Input must be {AckermannControlCommand}!')
-
-        acceleration_cmd = self._inbox.longitudinal.acceleration
-        throttle, brake = 0.0, 0.0
-        if acceleration_cmd > 0.0:
-            throttle = self._accel_to_cmd_polynomial(acceleration_cmd)
-        elif acceleration_cmd < 0.0:
-            brake = self._deaccel_to_cmd_polynomial(acceleration_cmd)
-
-        steering_angle_cmd = self._inbox.lateral.steering_tire_angle
-        steer = self._angle_to_steer_polynomial(steering_angle_cmd)
+        if not isinstance(self._inbox, ActuationCommandStamped):
+            raise RuntimeError(f'Input must be {ActuationCommandStamped}!')
+        
+        steer = self._angle_to_steer_polynomial(self._inbox.actuation.steer_cmd)
 
         output_control_command = CarlaEgoVehicleControl()
-        output_control_command.throttle = throttle
-        output_control_command.brake = brake
+        output_control_command.throttle = self._inbox.actuation.accel_cmd
+        output_control_command.brake = self._inbox.actuation.brake_cmd
         output_control_command.manual_gear_shift = False
         output_control_command.steer = steer
         self._outbox = output_control_command

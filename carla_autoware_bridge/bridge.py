@@ -22,6 +22,7 @@
 
 from autoware_auto_control_msgs.msg import AckermannControlCommand
 from autoware_auto_vehicle_msgs.msg import SteeringReport, VelocityReport
+from carla_autoware_bridge.converter.actuation_status import ActuationStatusConverter
 from carla_autoware_bridge.converter.control_command import ControlCommandConverter
 from carla_autoware_bridge.converter.lidar_ex import LidarExtendedConverter
 from carla_autoware_bridge.converter.steering_status import SteeringStatusConverter
@@ -31,6 +32,7 @@ from nav_msgs.msg import Odometry
 from rclpy.node import Node
 from sensor_msgs.msg import PointCloud2
 from std_msgs.msg import Header
+from tier4_vehicle_msgs.msg import ActuationCommandStamped, ActuationStatusStamped
 
 
 class AutowareBridge(Node):
@@ -39,6 +41,7 @@ class AutowareBridge(Node):
         super().__init__('carla_autoware_bridge')
         self._velocity_report_converter = VelocityReportConverter()
         self._steering_status_converter = SteeringStatusConverter()
+        self._actuation_status_converter = ActuationStatusConverter()
         self._control_command_converter = ControlCommandConverter()
         self._lidar_ex_converter = LidarExtendedConverter()
 
@@ -50,9 +53,9 @@ class AutowareBridge(Node):
             CarlaEgoVehicleStatus, '~/input/steering',
             self._vehicle_status_callback, 1)
 
-        self._ackermann_control_command_subscriber = self.create_subscription(
-            AckermannControlCommand, '~/input/control',
-            self._ackermann_control_command_callback, 1)
+        self._control_command_subscriber = self.create_subscription(
+            ActuationCommandStamped, '~/input/actuation',
+            self._control_command_callback, 1)
 
         self._lidar_subscriber = self.create_subscription(
             PointCloud2, '~/input/lidar',
@@ -63,6 +66,9 @@ class AutowareBridge(Node):
 
         self._steering_status_publisher = self.create_publisher(
             SteeringReport, '~/output/steering_status', 1)
+
+        self._actuation_status_publisher = self.create_publisher(
+            ActuationStatusStamped, '~/output/actuation_status', 1)
 
         self._vehicle_control_command_publisher = self.create_publisher(
             CarlaEgoVehicleControl, '~/output/control', 1)
@@ -85,13 +91,20 @@ class AutowareBridge(Node):
     def _vehicle_status_callback(self, vehicle_status_msg):
         self._steering_status_converter.inbox = vehicle_status_msg
         self._steering_status_converter.convert()
+        self._actuation_status_converter.inbox = vehicle_status_msg
+        self._actuation_status_converter.convert()
 
+        timestamp = self.get_clock().now().to_msg()
         steering_status_msg = self._steering_status_converter.outbox
-        steering_status_msg.stamp = self.get_clock().now().to_msg()
+        steering_status_msg.stamp = timestamp
         self._steering_status_publisher.publish(steering_status_msg)
+        
+        actuation_status_msg = self._actuation_status_converter.outbox
+        actuation_status_msg.header.stamp = timestamp
+        self._actuation_status_publisher.publish(actuation_status_msg)
 
-    def _ackermann_control_command_callback(self, ackermann_control_command_msg):
-        self._control_command_converter.inbox = ackermann_control_command_msg
+    def _control_command_callback(self, control_command_msg):
+        self._control_command_converter.inbox = control_command_msg
         self._control_command_converter.convert()
 
         vehicle_control_command_msg = self._control_command_converter.outbox
