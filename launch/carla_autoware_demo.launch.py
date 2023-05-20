@@ -71,6 +71,11 @@ def generate_launch_description():
          get_package_share_directory('carla_autoware_bridge')),
          '/carla_autoware_ego_vehicle.launch.py']))
 
+    raw_vehicle_converter = IncludeLaunchDescription(
+      PythonLaunchDescriptionSource([os.path.join(
+         get_package_share_directory('carla_autoware_bridge')),
+         '/raw_vehicle_converter.launch.py']))
+
     manual_control_window = IncludeLaunchDescription(
       PythonLaunchDescriptionSource([os.path.join(
          get_package_share_directory('carla_manual_control')),
@@ -84,6 +89,7 @@ def generate_launch_description():
         town_argument,
         carla_autoware_bridge,
         spawn_ego_vehicle,
+        raw_vehicle_converter,
         view_argument,
         manual_control_window,
     ])
