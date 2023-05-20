@@ -18,7 +18,7 @@ setup(
         ('share/' + package_name + '/data/carla_tesla_model3',
          glob('data/carla_tesla_model3/*.csv')),
         (os.path.join('share', package_name),
-         glob('launch/*.launch.*')),
+         glob('launch/*.launch.py')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -29,7 +29,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'carla_autoware_bridge = carla_autoware_bridge.carla_autoware_bridge:main'
+            'carla_autoware_bridge = carla_autoware_bridge.carla_autoware_bridge:main',
+            'carla_service = carla_autoware_bridge.carla_service:main'
         ],
     },
 )
