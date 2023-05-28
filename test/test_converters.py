@@ -30,7 +30,10 @@ from carla_autoware_bridge.converter.fake import FakeConverter
 from carla_autoware_bridge.converter.lidar_ex import LidarExtendedConverter
 from carla_autoware_bridge.converter.steering_status import SteeringStatusConverter
 from carla_autoware_bridge.converter.velocity_report import VelocityReportConverter
-from carla_msgs.msg import CarlaEgoVehicleControl, CarlaEgoVehicleStatus
+from carla_msgs.msg import (
+    CarlaEgoVehicleControl,
+    CarlaEgoVehicleStatus,
+    CarlaEgoVehicleSteering)
 from nav_msgs.msg import Odometry
 import numpy as np
 import pytest
@@ -108,19 +111,19 @@ def test_velocity_report_invalid_input():
 
 
 def test_left_steering_status_convert():
-    input_vehicle_status = CarlaEgoVehicleStatus()
-    input_vehicle_status.control.steer = -1.0
-
     fl_max_left_angle = -48.99
     fr_max_left_angle = -35.077
-    average_max_left_angle = (fl_max_left_angle + fr_max_left_angle) / 2
+    average_max_left_angle = np.radians(fl_max_left_angle + fr_max_left_angle) / 2
 
-    expected_steering_tire_angle = -np.radians(average_max_left_angle)
+    input_vehicle_steering = CarlaEgoVehicleSteering()
+    input_vehicle_steering.steering_tire_angle = average_max_left_angle
+
+    expected_steering_tire_angle = -average_max_left_angle
     expected_steering_status = SteeringReport()
     expected_steering_status.steering_tire_angle = expected_steering_tire_angle
 
     steering_status_converter = SteeringStatusConverter()
-    steering_status_converter.inbox = input_vehicle_status
+    steering_status_converter.inbox = input_vehicle_steering
     steering_status_converter.convert()
 
     assert pytest.approx(steering_status_converter.outbox.steering_tire_angle) == \
@@ -128,19 +131,19 @@ def test_left_steering_status_convert():
 
 
 def test_right_steering_status_convert():
-    input_vehicle_status = CarlaEgoVehicleStatus()
-    input_vehicle_status.control.steer = 1.0
-
     fl_max_right_angle = 35.077
     fr_max_right_angle = 48.99
-    average_max_right_angle = (fl_max_right_angle + fr_max_right_angle) / 2
+    average_max_right_angle = np.radians(fl_max_right_angle + fr_max_right_angle) / 2
 
-    expected_steering_tire_angle = -np.radians(average_max_right_angle)
+    input_vehicle_steering = CarlaEgoVehicleSteering()
+    input_vehicle_steering.steering_tire_angle = average_max_right_angle
+
+    expected_steering_tire_angle = -average_max_right_angle
     expected_steering_status = SteeringReport()
     expected_steering_status.steering_tire_angle = expected_steering_tire_angle
 
     steering_status_converter = SteeringStatusConverter()
-    steering_status_converter.inbox = input_vehicle_status
+    steering_status_converter.inbox = input_vehicle_steering
     steering_status_converter.convert()
 
     assert pytest.approx(steering_status_converter.outbox.steering_tire_angle) == \
@@ -148,14 +151,14 @@ def test_right_steering_status_convert():
 
 
 def test_center_steering_status_convert():
-    input_vehicle_status = CarlaEgoVehicleStatus()
-    input_vehicle_status.control.steer = 0.0
+    input_vehicle_steering = CarlaEgoVehicleSteering()
+    input_vehicle_steering.steering_tire_angle = 0.0
 
     expected_steering_status = SteeringReport()
     expected_steering_status.steering_tire_angle = 0.0
 
     steering_status_converter = SteeringStatusConverter()
-    steering_status_converter.inbox = input_vehicle_status
+    steering_status_converter.inbox = input_vehicle_steering
     steering_status_converter.convert()
 
     assert pytest.approx(steering_status_converter.outbox.steering_tire_angle) == \

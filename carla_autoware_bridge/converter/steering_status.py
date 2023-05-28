@@ -22,7 +22,7 @@
 
 from autoware_auto_vehicle_msgs.msg import SteeringReport
 from carla_autoware_bridge.converter.converter import Converter
-from carla_msgs.msg import CarlaEgoVehicleStatus
+from carla_msgs.msg import CarlaEgoVehicleSteering
 import numpy as np
 
 
@@ -30,30 +30,11 @@ class SteeringStatusConverter(Converter):
 
     def __init__(self) -> None:
         super().__init__()
-        self._steer_to_angle_polynomial = self._calculate_steer_to_angle_polynomial()
-
-    def _calculate_steer_to_angle_polynomial(self):
-        max_left_steer = -1
-        max_right_steer = 1
-
-        fl_max_left_angle = -48.99
-        fr_max_left_angle = -35.077
-        average_max_left_angle = -(fl_max_left_angle + fr_max_left_angle) / 2
-        average_max_left_angle = np.radians(average_max_left_angle)
-        average_max_right_angle = -average_max_left_angle
-
-        x = [max_left_steer, max_right_steer]
-        y = [average_max_left_angle, average_max_right_angle]
-        polynomial_coefficients = np.polyfit(x, y, 1)
-        steer_to_angle_polynomial = np.poly1d(polynomial_coefficients)
-        return steer_to_angle_polynomial
 
     def _convert(self):
-        if not isinstance(self._inbox, CarlaEgoVehicleStatus):
-            raise RuntimeError(f'Input must be {CarlaEgoVehicleStatus}!')
+        if not isinstance(self._inbox, CarlaEgoVehicleSteering):
+            raise RuntimeError(f'Input must be {CarlaEgoVehicleSteering}!')
 
         output_steering_status = SteeringReport()
-        steer = self._inbox.control.steer
-        angle = self._steer_to_angle_polynomial(steer)
-        output_steering_status.steering_tire_angle = angle
+        output_steering_status.steering_tire_angle = -self._inbox.steering_tire_angle
         self._outbox = output_steering_status

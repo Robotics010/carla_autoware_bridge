@@ -27,7 +27,10 @@ from carla_autoware_bridge.converter.control_command import ControlCommandConver
 from carla_autoware_bridge.converter.lidar_ex import LidarExtendedConverter
 from carla_autoware_bridge.converter.steering_status import SteeringStatusConverter
 from carla_autoware_bridge.converter.velocity_report import VelocityReportConverter
-from carla_msgs.msg import CarlaEgoVehicleControl, CarlaEgoVehicleStatus
+from carla_msgs.msg import (
+    CarlaEgoVehicleControl,
+    CarlaEgoVehicleStatus,
+    CarlaEgoVehicleSteering)
 from nav_msgs.msg import Odometry
 from rclpy.node import Node
 from sensor_msgs.msg import PointCloud2
@@ -50,8 +53,12 @@ class AutowareBridge(Node):
             self._odometry_callback, 1)
 
         self._vehicle_status_subscriber = self.create_subscription(
-            CarlaEgoVehicleStatus, '~/input/steering',
+            CarlaEgoVehicleStatus, '~/input/status',
             self._vehicle_status_callback, 1)
+
+        self._vehicle_steering_subscriber = self.create_subscription(
+            CarlaEgoVehicleSteering, '~/input/steering',
+            self._vehicle_steering_callback, 1)
 
         self._control_command_subscriber = self.create_subscription(
             ActuationCommandStamped, '~/input/actuation',
@@ -89,20 +96,23 @@ class AutowareBridge(Node):
         self._velocity_report_publisher.publish(velocity_report_msg)
 
     def _vehicle_status_callback(self, vehicle_status_msg):
-        self._steering_status_converter.inbox = vehicle_status_msg
-        self._steering_status_converter.convert()
         self._actuation_status_converter.inbox = vehicle_status_msg
         self._actuation_status_converter.convert()
+
+        timestamp = self.get_clock().now().to_msg()
+        actuation_status_msg = self._actuation_status_converter.outbox
+        actuation_status_msg.header.stamp = timestamp
+        self._actuation_status_publisher.publish(actuation_status_msg)
+
+    def _vehicle_steering_callback(self, vehicle_steering_msg):
+        self._steering_status_converter.inbox = vehicle_steering_msg
+        self._steering_status_converter.convert()
 
         timestamp = self.get_clock().now().to_msg()
         steering_status_msg = self._steering_status_converter.outbox
         steering_status_msg.stamp = timestamp
         self._steering_status_publisher.publish(steering_status_msg)
-        
-        actuation_status_msg = self._actuation_status_converter.outbox
-        actuation_status_msg.header.stamp = timestamp
-        self._actuation_status_publisher.publish(actuation_status_msg)
-
+    
     def _control_command_callback(self, control_command_msg):
         self._control_command_converter.inbox = control_command_msg
         self._control_command_converter.convert()

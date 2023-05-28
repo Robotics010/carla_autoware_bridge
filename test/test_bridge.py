@@ -24,7 +24,10 @@ import time
 
 from autoware_auto_vehicle_msgs.msg import SteeringReport, VelocityReport
 from carla_autoware_bridge.bridge import AutowareBridge
-from carla_msgs.msg import CarlaEgoVehicleControl, CarlaEgoVehicleStatus
+from carla_msgs.msg import (
+    CarlaEgoVehicleControl,
+    CarlaEgoVehicleStatus,
+    CarlaEgoVehicleSteering)
 from tier4_vehicle_msgs.msg import ActuationCommandStamped, ActuationStatusStamped
 
 from nav_msgs.msg import Odometry
@@ -46,7 +49,11 @@ class BridgeTester(Node):
 
         self.vehicle_status = None
         self._vehicle_status_publisher = self.create_publisher(
-            CarlaEgoVehicleStatus, '/carla_autoware_bridge/input/steering', 1)
+            CarlaEgoVehicleStatus, '/carla_autoware_bridge/input/status', 1)
+
+        self.vehicle_steering = None
+        self._vehicle_steering_publisher = self.create_publisher(
+            CarlaEgoVehicleSteering, '/carla_autoware_bridge/input/steering', 1)
 
         self.control_command = None
         self._control_command_publisher = self.create_publisher(
@@ -103,6 +110,9 @@ class BridgeTester(Node):
     def publish_vehicle_status(self):
         self._vehicle_status_publisher.publish(self.vehicle_status)
 
+    def publish_vehicle_steering(self):
+        self._vehicle_steering_publisher.publish(self.vehicle_steering)
+
     def publish_control_command(self):
         self._control_command_publisher.publish(self.control_command)
 
@@ -147,20 +157,21 @@ def test_steering_status():
     rclpy.init()
     bridge = AutowareBridge()
 
-    input_vehicle_status = CarlaEgoVehicleStatus()
-    input_vehicle_status.control.steer = 1.0
-
     fl_max_right_angle = 35.077
     fr_max_right_angle = 48.99
     average_max_right_angle = (fl_max_right_angle + fr_max_right_angle) / 2
+    average_max_right_angle = np.radians(average_max_right_angle)
 
-    expected_steering_tire_angle = -np.radians(average_max_right_angle)
+    input_vehicle_steering = CarlaEgoVehicleSteering()
+    input_vehicle_steering.steering_tire_angle = average_max_right_angle
+
+    expected_steering_tire_angle = -average_max_right_angle
     expected_steering_status = SteeringReport()
     expected_steering_status.steering_tire_angle = expected_steering_tire_angle
 
     bridge_tester = BridgeTester()
-    bridge_tester.vehicle_status = input_vehicle_status
-    bridge_tester.publish_vehicle_status()
+    bridge_tester.vehicle_steering = input_vehicle_steering
+    bridge_tester.publish_vehicle_steering()
 
     start_time = time.time()
     while not bridge_tester.is_steering_status_received:
