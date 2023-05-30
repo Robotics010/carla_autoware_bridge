@@ -30,7 +30,7 @@ setup(
     entry_points={
         'console_scripts': [
             'carla_autoware_bridge = carla_autoware_bridge.carla_autoware_bridge:main',
-            'carla_service = carla_autoware_bridge.carla_service:main'
+            'carla_service = carla_autoware_bridge.carla_service:main',
         ],
     },
 )
