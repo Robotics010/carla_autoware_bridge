@@ -60,18 +60,18 @@ def main(args=None):
 
     is_shutdown = False
     while not is_shutdown:
-        print(f'a {accel:.2f}, v {velocity:.2f}, b {brake:.2f}')
+        print(f'a {accel:.2f}, v {velocity:.2f}, b {brake:.2f}, t {timeout:.0f}')
         command = input('command: ')
 
         if command == '':
-            print(f'Go with accel: {accel} up to vel: {velocity} then brake: {brake}')
+            print(f'Go with accel: {accel} up to vel: {velocity}'
+                  f' then brake: {brake} with timeout {timeout} s')
 
             current_velocity = 0.0
             accel_brake_commander.accel = accel
             accel_brake_commander.brake = 0.0
             start = accel_brake_commander.get_clock().now().to_msg().sec
             now = accel_brake_commander.get_clock().now().to_msg().sec
-            print(f'waiting until velocity reaches {velocity}')
             while current_velocity < velocity and now - start < timeout:
                 rclpy.spin_once(accel_brake_commander)
                 rclpy.spin_once(twist_reader)
@@ -81,7 +81,6 @@ def main(args=None):
 
             accel_brake_commander.accel = 0.0
             accel_brake_commander.brake = brake
-            print(f'waiting until velocity reaches {0.001}')
             start = accel_brake_commander.get_clock().now().to_msg().sec
             while current_velocity > 0.001 and now - start < timeout:
                 rclpy.spin_once(accel_brake_commander)
