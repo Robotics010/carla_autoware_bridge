@@ -22,37 +22,30 @@
 
 from carla_autoware_bridge.converter.converter import Converter
 from carla_msgs.msg import CarlaEgoVehicleControl
+import csv
 import numpy as np
 from tier4_vehicle_msgs.msg import ActuationCommandStamped
 
 
 class ControlCommandConverter(Converter):
 
-    def __init__(self) -> None:
+    def __init__(self, steer_map_path='') -> None:
         super().__init__()
-        self._angle_to_steer_polynomial = self._calculate_angle_to_steer_polynomial()
-    
-    def _calculate_angle_to_steer_polynomial(self):
-        max_left_steer = -1
-        max_right_steer = 1
 
-        fl_max_left_angle = 48.99
-        fr_max_left_angle = 35.077
-        average_max_left_angle = (fl_max_left_angle + fr_max_left_angle) / 2
-        average_max_left_angle = np.radians(average_max_left_angle)
-        average_max_right_angle = -average_max_left_angle
+        with open(steer_map_path, newline='') as csvfile:
+            csv_reader = csv.reader(csvfile)
+            self._tire_angle = np.float32(next(csv_reader))
+            self._steer_cmd = np.float32(next(csv_reader))
 
-        x = [average_max_left_angle, average_max_right_angle]
-        y = [max_left_steer, max_right_steer]
-        polynomial_coefficients = np.polyfit(x, y, 1)
-        angle_to_steer_polynomial = np.poly1d(polynomial_coefficients)
-        return angle_to_steer_polynomial
+    def _convert_from_tire_to_steer(self, tire_angle) -> float:
+        nearest_idx = (np.abs(self._tire_angle - tire_angle)).argmin()
+        return float(self._steer_cmd[nearest_idx])
 
     def _convert(self):
         if not isinstance(self._inbox, ActuationCommandStamped):
             raise RuntimeError(f'Input must be {ActuationCommandStamped}!')
         
-        steer = self._angle_to_steer_polynomial(self._inbox.actuation.steer_cmd)
+        steer = self._convert_from_tire_to_steer(self._inbox.actuation.steer_cmd)
 
         output_control_command = CarlaEgoVehicleControl()
         output_control_command.throttle = self._inbox.actuation.accel_cmd

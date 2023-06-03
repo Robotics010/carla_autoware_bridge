@@ -174,8 +174,12 @@ def test_steering_status_invalid_input():
     with pytest.raises(RuntimeError):
         steering_status_converter.convert()
 
+@pytest.fixture
+def control_command_converter():
+    steer_map_path = './test/data/steer_map.csv'
+    return ControlCommandConverter(steer_map_path)
 
-def test_throttle_control_command():
+def test_throttle_control_command(control_command_converter):
     input_control_command = ActuationCommandStamped()
     input_control_command.actuation.accel_cmd = 0.301
 
@@ -183,7 +187,6 @@ def test_throttle_control_command():
     expected_control_command.throttle = 0.301
     expected_control_command.brake = 0.0
 
-    control_command_converter = ControlCommandConverter()
     control_command_converter.inbox = input_control_command
     control_command_converter.convert()
 
@@ -193,7 +196,7 @@ def test_throttle_control_command():
         pytest.approx(expected_control_command.brake)
 
 
-def test_still_control_command():
+def test_still_control_command(control_command_converter):
     input_control_command = ActuationCommandStamped()
     input_control_command.actuation.accel_cmd = 0.0
 
@@ -201,7 +204,6 @@ def test_still_control_command():
     expected_control_command.throttle = 0.0
     expected_control_command.brake = 0.0
 
-    control_command_converter = ControlCommandConverter()
     control_command_converter.inbox = input_control_command
     control_command_converter.convert()
 
@@ -211,7 +213,7 @@ def test_still_control_command():
         pytest.approx(expected_control_command.brake)
 
 
-def test_brake_control_command():
+def test_brake_control_command(control_command_converter):
     input_control_command = ActuationCommandStamped()
     input_control_command.actuation.brake_cmd = 0.205
 
@@ -219,7 +221,6 @@ def test_brake_control_command():
     expected_control_command.throttle = 0.0
     expected_control_command.brake = 0.205
 
-    control_command_converter = ControlCommandConverter()
     control_command_converter.inbox = input_control_command
     control_command_converter.convert()
 
@@ -229,14 +230,13 @@ def test_brake_control_command():
         pytest.approx(expected_control_command.brake)
 
 
-def test_steering_left_control_command():
+def test_steering_left_control_command(control_command_converter):
     input_control_command = ActuationCommandStamped()
-    input_control_command.actuation.steer_cmd = -0.299
+    input_control_command.actuation.steer_cmd = -0.648202002048492 # rad
 
     expected_control_command = CarlaEgoVehicleControl()
-    expected_control_command.steer = 0.407566
+    expected_control_command.steer = 0.6
 
-    control_command_converter = ControlCommandConverter()
     control_command_converter.inbox = input_control_command
     control_command_converter.convert()
 
@@ -244,14 +244,13 @@ def test_steering_left_control_command():
         pytest.approx(expected_control_command.steer)
 
 
-def test_steering_right_control_command():
+def test_steering_right_control_command(control_command_converter):
     input_control_command = ActuationCommandStamped()
-    input_control_command.actuation.steer_cmd = 0.299
+    input_control_command.actuation.steer_cmd = 0.340341448783875 # rad
 
     expected_control_command = CarlaEgoVehicleControl()
-    expected_control_command.steer = -0.407566
+    expected_control_command.steer = -0.3
 
-    control_command_converter = ControlCommandConverter()
     control_command_converter.inbox = input_control_command
     control_command_converter.convert()
 
@@ -259,13 +258,12 @@ def test_steering_right_control_command():
         pytest.approx(expected_control_command.steer)
 
 
-def test_gear_control_command():
+def test_gear_control_command(control_command_converter):
     input_control_command = ActuationCommandStamped()
 
     expected_control_command = CarlaEgoVehicleControl()
     expected_control_command.manual_gear_shift = False
 
-    control_command_converter = ControlCommandConverter()
     control_command_converter.inbox = input_control_command
     control_command_converter.convert()
 
@@ -273,11 +271,10 @@ def test_gear_control_command():
         pytest.approx(expected_control_command.manual_gear_shift)
 
 
-def test_control_comman_invalid_input():
+def test_control_comman_invalid_input(control_command_converter):
     class UnexpectedInput():
         pass
     input_invalid = UnexpectedInput()
-    control_command_converter = ControlCommandConverter()
     control_command_converter.inbox = input_invalid
     with pytest.raises(RuntimeError):
         control_command_converter.convert()

@@ -20,6 +20,7 @@
 #   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #   SOFTWARE.
 
+from ament_index_python.packages import get_package_share_directory
 from autoware_auto_control_msgs.msg import AckermannControlCommand
 from autoware_auto_vehicle_msgs.msg import SteeringReport, VelocityReport
 from carla_autoware_bridge.converter.actuation_status import ActuationStatusConverter
@@ -45,7 +46,12 @@ class AutowareBridge(Node):
         self._velocity_report_converter = VelocityReportConverter()
         self._steering_status_converter = SteeringStatusConverter()
         self._actuation_status_converter = ActuationStatusConverter()
-        self._control_command_converter = ControlCommandConverter()
+
+        package_path = get_package_share_directory("carla_autoware_bridge")
+        self.declare_parameter("csv_path_steer_map", package_path + "/data/carla_tesla_model3/steer_map.csv")
+        csv_path_steer_map = self.get_parameter("csv_path_steer_map").get_parameter_value().string_value
+        self._control_command_converter = ControlCommandConverter(csv_path_steer_map)
+
         self._lidar_ex_converter = LidarExtendedConverter()
 
         self._odometry_subscriber = self.create_subscription(
