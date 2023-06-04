@@ -50,7 +50,7 @@ Install the dependencies using the provided Ansible script.
 
 ### 2.2 Add repositories required for CARLA communication
 
-Add `ros-bridge`, `carla_autoware_bridge` and `carla_tesla_model3_description` repos to `autoware.repos` list.
+Add `ros-bridge`, `carla_autoware_bridge`, `carla_tesla_model3_description`, `carla_launch` and `carla_control_launch` repos to `autoware.repos` list.
 
 Go to autoware/autoware.repos files and use your text editor to add the following new repositories.
 

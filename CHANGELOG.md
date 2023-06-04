@@ -1,4 +1,4 @@
-## Latest changed
+## carla_autoware_bridge 0.2
 
 * use raw_vehicle_converter and accel/brake map
 * acquire accel/brake map for carla.tesla.model3 vehicle
