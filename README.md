@@ -17,7 +17,6 @@ Go to [Getting started](getting-started.md) tutorial to setup and launch autowar
 
 * only galactic support (no humble support yet)
 * sensors' position/rotation and calibration were not configured properly yet
-* control config/calibration is still waiting to adapt to CARLA's vehicle
 
 ## Frequently asked questions
 
@@ -31,7 +30,7 @@ Yes, but you can take advantage of CARLA synchronous mode. By default without th
 
 ### Can I use docker installation instead?
 
-Yes, you can look at correspoding steps from [the autoware tutorials](https://autowarefoundation.github.io/autoware-documentation/galactic/installation/autoware/docker-installation/). I didn't use docker installation becuase of [launching rviz inside galactic docker](troubleshooting.md#launching-rviz-inside-galactic-docker) problem. It looks like humble doesn't have the same problem.
+Yes, you can look at correspoding steps from [the autoware tutorials](https://autowarefoundation.github.io/autoware-documentation/galactic/installation/autoware/docker-installation/). I didn't use docker installation because of [launching rviz inside galactic docker](troubleshooting.md#launching-rviz-inside-galactic-docker) problem. It looks like humble doesn't have the same problem.
 
 ### How can I control the vehicle manually from the keyboard?
 
