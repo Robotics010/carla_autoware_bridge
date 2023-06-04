@@ -20,8 +20,6 @@
 #   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #   SOFTWARE.
 
-import os
-
 from ament_index_python.packages import get_package_share_directory
 import launch
 import launch_ros.actions
@@ -54,13 +52,15 @@ def generate_launch_description():
                     'use_sim_time': True
                 },
                 {
-                    'csv_path_accel_map': launch.substitutions.LaunchConfiguration('csv_path_accel_map')
+                    'csv_path_accel_map': launch.substitutions.LaunchConfiguration(
+                        'csv_path_accel_map')
                 },
                 {
                     'convert_accel_cmd': True
                 },
                 {
-                    'csv_path_brake_map': launch.substitutions.LaunchConfiguration('csv_path_brake_map')
+                    'csv_path_brake_map': launch.substitutions.LaunchConfiguration(
+                        'csv_path_brake_map')
                 },
                 {
                     'convert_brake_cmd': True

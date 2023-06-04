@@ -20,11 +20,13 @@
 #   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #   SOFTWARE.
 
+import threading
+
 from carla_msgs.msg import CarlaEgoVehicleControl, CarlaEgoVehicleStatus
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Header
-import threading
+
 
 class CarlaService(Node):
 
@@ -44,12 +46,14 @@ class CarlaService(Node):
         self._vehicle_status_msg = vehicle_status_msg
 
     def prepare_vehicle_control(self):
-        '''
+        """
+        Prepare vehicle interface for auto mode.
+
         After spawning a car we have to switch from automatic transmission to manual transmission,
         put the car in the first gear and then switch back to automatic transmission,
         otherwise there is a delay when applying high throttle for the first time or
-        if a low throttle is applied for the first time the vehicle will not move at all 
-        '''
+        if a low throttle is applied for the first time the vehicle will not move at all
+        """
         output_control_command = CarlaEgoVehicleControl()
         header = Header()
         header.stamp = self.get_clock().now().to_msg()
@@ -82,7 +86,7 @@ def main(args=None):
     # spin in another thread, because node.rate is used inside main thread
     spin_thread = threading.Thread(target=rclpy.spin, args=(carla_service, ), daemon=True)
     spin_thread.start()
-    
+
     carla_service.prepare_vehicle_control()
 
     rate = carla_service.create_rate(1.0)
@@ -92,6 +96,7 @@ def main(args=None):
     carla_service.destroy_node()
     rclpy.shutdown()
     spin_thread.join()
+
 
 if __name__ == '__main__':
     main()

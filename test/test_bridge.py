@@ -28,13 +28,12 @@ from carla_msgs.msg import (
     CarlaEgoVehicleControl,
     CarlaEgoVehicleStatus,
     CarlaEgoVehicleSteering)
-from tier4_vehicle_msgs.msg import ActuationCommandStamped, ActuationStatusStamped
-
 from nav_msgs.msg import Odometry
 import numpy as np
 import pytest
 import rclpy
 from rclpy.node import Node
+from tier4_vehicle_msgs.msg import ActuationCommandStamped, ActuationStatusStamped
 
 
 class BridgeTester(Node):
@@ -80,7 +79,7 @@ class BridgeTester(Node):
             CarlaEgoVehicleControl, '/carla_autoware_bridge/output/control',
             self._vehicle_control_command_callback, 1)
         self._vehicle_control_command_subscriber
-        
+
         self.is_actuation_status_received = False
         self.actuation_status = None
         self._actuation_status_subscriber = self.create_subscription(
@@ -99,7 +98,7 @@ class BridgeTester(Node):
     def _vehicle_control_command_callback(self, vehicle_control_command_msg):
         self.vehicle_control_command = vehicle_control_command_msg
         self.is_vehicle_control_command_received = True
-    
+
     def _actuation_status_callback(self, actuation_status_msg):
         self.actuation_status = actuation_status_msg
         self.is_actuation_status_received = True
@@ -213,6 +212,7 @@ def test_control_command():
         pytest.approx(expected_control_command.throttle)
 
     rclpy.shutdown()
+
 
 def test_actuation_status():
     rclpy.init()

@@ -174,10 +174,12 @@ def test_steering_status_invalid_input():
     with pytest.raises(RuntimeError):
         steering_status_converter.convert()
 
+
 @pytest.fixture
 def control_command_converter():
     steer_map_path = './test/data/steer_map.csv'
     return ControlCommandConverter(steer_map_path)
+
 
 def test_throttle_control_command(control_command_converter):
     input_control_command = ActuationCommandStamped()
@@ -232,7 +234,7 @@ def test_brake_control_command(control_command_converter):
 
 def test_steering_left_control_command(control_command_converter):
     input_control_command = ActuationCommandStamped()
-    input_control_command.actuation.steer_cmd = -0.648202002048492 # rad
+    input_control_command.actuation.steer_cmd = -0.648202002048492  # rad
 
     expected_control_command = CarlaEgoVehicleControl()
     expected_control_command.steer = 0.6
@@ -246,7 +248,7 @@ def test_steering_left_control_command(control_command_converter):
 
 def test_steering_right_control_command(control_command_converter):
     input_control_command = ActuationCommandStamped()
-    input_control_command.actuation.steer_cmd = 0.340341448783875 # rad
+    input_control_command.actuation.steer_cmd = 0.340341448783875  # rad
 
     expected_control_command = CarlaEgoVehicleControl()
     expected_control_command.steer = -0.3
@@ -480,8 +482,8 @@ def test_lidar_ex_invalid_input():
     with pytest.raises(RuntimeError):
         lidar_ex_converter.convert()
 
+
 def test_actuation_status():
-    
     input_vehicle_status = CarlaEgoVehicleStatus()
     input_vehicle_status.control.throttle = 0.4
     input_vehicle_status.control.brake = 0.0

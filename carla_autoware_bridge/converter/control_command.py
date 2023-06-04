@@ -20,9 +20,10 @@
 #   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #   SOFTWARE.
 
+import csv
+
 from carla_autoware_bridge.converter.converter import Converter
 from carla_msgs.msg import CarlaEgoVehicleControl
-import csv
 import numpy as np
 from tier4_vehicle_msgs.msg import ActuationCommandStamped
 
@@ -44,7 +45,7 @@ class ControlCommandConverter(Converter):
     def _convert(self):
         if not isinstance(self._inbox, ActuationCommandStamped):
             raise RuntimeError(f'Input must be {ActuationCommandStamped}!')
-        
+
         steer = self._convert_from_tire_to_steer(self._inbox.actuation.steer_cmd)
 
         output_control_command = CarlaEgoVehicleControl()

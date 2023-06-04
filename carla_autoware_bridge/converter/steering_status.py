@@ -23,7 +23,6 @@
 from autoware_auto_vehicle_msgs.msg import SteeringReport
 from carla_autoware_bridge.converter.converter import Converter
 from carla_msgs.msg import CarlaEgoVehicleSteering
-import numpy as np
 
 
 class SteeringStatusConverter(Converter):

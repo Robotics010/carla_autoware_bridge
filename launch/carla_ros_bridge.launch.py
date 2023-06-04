@@ -156,7 +156,8 @@ def generate_launch_description():
                     'use_sim_time': True
                 },
                 {
-                    'csv_path_steer_map': launch.substitutions.LaunchConfiguration('csv_path_steer_map')
+                    'csv_path_steer_map': launch.substitutions.LaunchConfiguration(
+                        'csv_path_steer_map')
                 }
             ],
             remappings=[

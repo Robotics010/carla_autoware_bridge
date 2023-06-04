@@ -24,10 +24,11 @@ import os
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
+
 
 def generate_launch_description():
     host_argument = DeclareLaunchArgument(
@@ -94,6 +95,7 @@ def generate_launch_description():
         manual_control_window,
     ])
     return ld
+
 
 if __name__ == '__main__':
     generate_launch_description()

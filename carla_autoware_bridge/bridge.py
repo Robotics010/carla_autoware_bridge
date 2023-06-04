@@ -21,7 +21,6 @@
 #   SOFTWARE.
 
 from ament_index_python.packages import get_package_share_directory
-from autoware_auto_control_msgs.msg import AckermannControlCommand
 from autoware_auto_vehicle_msgs.msg import SteeringReport, VelocityReport
 from carla_autoware_bridge.converter.actuation_status import ActuationStatusConverter
 from carla_autoware_bridge.converter.control_command import ControlCommandConverter
@@ -47,9 +46,11 @@ class AutowareBridge(Node):
         self._steering_status_converter = SteeringStatusConverter()
         self._actuation_status_converter = ActuationStatusConverter()
 
-        package_path = get_package_share_directory("carla_autoware_bridge")
-        self.declare_parameter("csv_path_steer_map", package_path + "/data/carla_tesla_model3/steer_map.csv")
-        csv_path_steer_map = self.get_parameter("csv_path_steer_map").get_parameter_value().string_value
+        package_path = get_package_share_directory('carla_autoware_bridge')
+        self.declare_parameter('csv_path_steer_map',
+                               package_path + '/data/carla_tesla_model3/steer_map.csv')
+        csv_path_steer_map = self.get_parameter(
+            'csv_path_steer_map').get_parameter_value().string_value
         self._control_command_converter = ControlCommandConverter(csv_path_steer_map)
 
         self._lidar_ex_converter = LidarExtendedConverter()
@@ -118,7 +119,7 @@ class AutowareBridge(Node):
         steering_status_msg = self._steering_status_converter.outbox
         steering_status_msg.stamp = timestamp
         self._steering_status_publisher.publish(steering_status_msg)
-    
+
     def _control_command_callback(self, control_command_msg):
         self._control_command_converter.inbox = control_command_msg
         self._control_command_converter.convert()
