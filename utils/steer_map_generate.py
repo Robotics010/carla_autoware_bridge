@@ -12,7 +12,7 @@ class SteeringMapCollector(Node):
         self._vehicle_control_publisher = self.create_publisher(
             CarlaEgoVehicleControl, "/carla/ego_vehicle/vehicle_control_cmd", 1)
         
-        self._steer_range = np.linspace(1.0, -1.0, 201)
+        self._steer_range = np.linspace(1.0, -1.0, 1401)
         self._prev_tire_angle = 0.0
         self._tire_angles = []
         self._convergence_count = 0
