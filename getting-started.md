@@ -59,27 +59,27 @@ Go to autoware/autoware.repos files and use your text editor to add the followin
   carla/ros-bridge:
     type: git
     url: https://github.com/Robotics010/ros-bridge.git
-    version: master
+    version: e02d135a83b3c6d11aa6b8437a72182baaae80b9
   carla/astuff_sensor_msgs:
     type: git
     url: https://github.com/astuff/astuff_sensor_msgs.git
-    version: master
+    version: a07119d26d202023e5239a17007e93b1af4d9e32
   carla/carla_autoware_bridge:
     type: git
     url: https://github.com/Robotics010/carla_autoware_bridge.git
-    version: master
+    version: v0.2
   carla/carla_tesla_model3_description:
     type: git
     url: https://github.com/Robotics010/carla_tesla_model3_description.git
-    version: master
+    version: 3d2c97f9cb146a8c182a8e85e706a404138bfe7b
   carla/carla_launch:
     type: git
     url: https://github.com/Robotics010/carla_launch.git
-    version: master
+    version: fa341691441cd22c006ba7600b4d1241fa3e8ec5
   carla/carla_control_launch:
     type: git
     url: https://github.com/Robotics010/carla_control_launch.git
-    version: master
+    version: 75b8ec5bab95491cd2aa9cb88a8d347fc9031d33
 ```
 
 [`Robotics010/ros-bridge`](https://github.com/Robotics010/ros-bridge) is a fork from [`carla-simulator/ros-bridge`](https://github.com/carla-simulator/ros-bridge) and have [some changes](https://github.com/Robotics010/ros-bridge/blob/b183848fc5fa35a35a6f3381466ea245f14cfc29/CHANGELOG.md#fork-changes), that were required from Autoware.
