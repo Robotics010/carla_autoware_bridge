@@ -20,6 +20,7 @@
 #   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #   SOFTWARE.
 
+from ament_index_python.packages import get_package_share_directory
 import launch
 import launch_ros.actions
 
@@ -82,6 +83,11 @@ def generate_launch_description():
             default_value=['hero', 'ego_vehicle', 'hero0', 'hero1', 'hero2',
                            'hero3', 'hero4', 'hero5', 'hero6', 'hero7', 'hero8', 'hero9'],
             description='Role names to identify ego vehicles. '
+        ),
+        launch.actions.DeclareLaunchArgument(
+            name='csv_path_steer_map',
+            default_value=get_package_share_directory(
+                'carla_autoware_bridge') + '/data/carla_tesla_model3/steer_map.csv'
         ),
         launch_ros.actions.Node(
             package='carla_ros_bridge',
@@ -148,13 +154,23 @@ def generate_launch_description():
             parameters=[
                 {
                     'use_sim_time': True
+                },
+                {
+                    'csv_path_steer_map': launch.substitutions.LaunchConfiguration(
+                        'csv_path_steer_map')
                 }
             ],
             remappings=[
-                ('/carla/ego_vehicle/velocity_status', '/vehicle/status/velocity_status'),
-                ('/carla/ego_vehicle/steering_status', '/vehicle/status/steering_status'),
-                ('/carla/ego_vehicle/lidar', '/sensing/lidar/top/pointcloud_raw'),
-                ('/carla/ego_vehicle/lidar_ex', '/sensing/lidar/top/pointcloud_raw_ex'),
+                ('~/input/odometry', '/carla/ego_vehicle/odometry'),
+                ('~/input/status', '/carla/ego_vehicle/vehicle_status'),
+                ('~/input/steering', '/carla/ego_vehicle/vehicle_steering'),
+                ('~/input/actuation', '/control/command/actuation_cmd'),
+                ('~/input/lidar', '/sensing/lidar/top/pointcloud_raw'),
+                ('~/output/velocity_status', '/vehicle/status/velocity_status'),
+                ('~/output/steering_status', '/vehicle/status/steering_status'),
+                ('~/output/actuation_status', '/vehicle/status/actuation_status'),
+                ('~/output/control', '/carla/ego_vehicle/vehicle_control_cmd'),
+                ('~/output/lidar_ex', '/sensing/lidar/top/pointcloud_raw_ex'),
             ],
         )
     ])

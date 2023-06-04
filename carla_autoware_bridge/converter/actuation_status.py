@@ -20,37 +20,21 @@
 #   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #   SOFTWARE.
 
-import csv
-
 from carla_autoware_bridge.converter.converter import Converter
-from carla_msgs.msg import CarlaEgoVehicleControl
-import numpy as np
-from tier4_vehicle_msgs.msg import ActuationCommandStamped
+from carla_msgs.msg import CarlaEgoVehicleStatus
+from tier4_vehicle_msgs.msg import ActuationStatusStamped
 
 
-class ControlCommandConverter(Converter):
+class ActuationStatusConverter(Converter):
 
-    def __init__(self, steer_map_path='') -> None:
+    def __init__(self) -> None:
         super().__init__()
 
-        with open(steer_map_path, newline='') as csvfile:
-            csv_reader = csv.reader(csvfile)
-            self._tire_angle = np.float32(next(csv_reader))
-            self._steer_cmd = np.float32(next(csv_reader))
-
-    def _convert_from_tire_to_steer(self, tire_angle) -> float:
-        nearest_idx = (np.abs(self._tire_angle - tire_angle)).argmin()
-        return float(self._steer_cmd[nearest_idx])
-
     def _convert(self):
-        if not isinstance(self._inbox, ActuationCommandStamped):
-            raise RuntimeError(f'Input must be {ActuationCommandStamped}!')
+        if not isinstance(self._inbox, CarlaEgoVehicleStatus):
+            raise RuntimeError(f'Input must be {CarlaEgoVehicleStatus}!')
 
-        steer = self._convert_from_tire_to_steer(self._inbox.actuation.steer_cmd)
-
-        output_control_command = CarlaEgoVehicleControl()
-        output_control_command.throttle = self._inbox.actuation.accel_cmd
-        output_control_command.brake = self._inbox.actuation.brake_cmd
-        output_control_command.manual_gear_shift = False
-        output_control_command.steer = steer
-        self._outbox = output_control_command
+        self._outbox = ActuationStatusStamped()
+        self._outbox.status.accel_status = self._inbox.control.throttle
+        self._outbox.status.brake_status = self._inbox.control.brake
+        self._outbox.status.steer_status = self._inbox.control.steer

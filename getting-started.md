@@ -72,6 +72,14 @@ Go to autoware/autoware.repos files and use your text editor to add the followin
     type: git
     url: https://github.com/Robotics010/carla_tesla_model3_description.git
     version: master
+  carla/carla_launch:
+    type: git
+    url: https://github.com/Robotics010/carla_launch.git
+    version: master
+  carla/carla_control_launch:
+    type: git
+    url: https://github.com/Robotics010/carla_control_launch.git
+    version: master
 ```
 
 [`Robotics010/ros-bridge`](https://github.com/Robotics010/ros-bridge) is a fork from [`carla-simulator/ros-bridge`](https://github.com/carla-simulator/ros-bridge) and have [some changes](https://github.com/Robotics010/ros-bridge/blob/b183848fc5fa35a35a6f3381466ea245f14cfc29/CHANGELOG.md#fork-changes), that were required from Autoware.
@@ -142,7 +150,7 @@ And launch Autoware software stack with the following commands:
 ```
 source /opt/ros/galactic/setup.bash
 source ~/autoware/install/setup.bash
-ros2 launch autoware_launch e2e_simulator.launch.xml map_path:=$HOME/autoware_map/carla-town-1 vehicle_model:=carla_tesla_model3 sensor_model:=sample_sensor_kit
+ros2 launch carla_launch e2e_simulator.launch.xml map_path:=$HOME/autoware_map/carla-town-1 vehicle_model:=carla_tesla_model3 sensor_model:=sample_sensor_kit
 ```
 
 At this step your desktop should look like:

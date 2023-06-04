@@ -1,3 +1,13 @@
+## Latest changed
+
+* use raw_vehicle_converter and accel/brake map
+* acquire accel/brake map for carla.tesla.model3 vehicle
+* reimplement steer map conversion
+* tune control for a vehicle
+* prepare vehicle for auto mode after spawn
+* add steering feedback subscription
+* add carla_launch packages
+
 ## carla_autoware_bridge 0.1
 
 * missing converters, that allow carla-autoware communication:

@@ -20,17 +20,22 @@
 #   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #   SOFTWARE.
 
-from autoware_auto_control_msgs.msg import AckermannControlCommand
+from ament_index_python.packages import get_package_share_directory
 from autoware_auto_vehicle_msgs.msg import SteeringReport, VelocityReport
+from carla_autoware_bridge.converter.actuation_status import ActuationStatusConverter
 from carla_autoware_bridge.converter.control_command import ControlCommandConverter
 from carla_autoware_bridge.converter.lidar_ex import LidarExtendedConverter
 from carla_autoware_bridge.converter.steering_status import SteeringStatusConverter
 from carla_autoware_bridge.converter.velocity_report import VelocityReportConverter
-from carla_msgs.msg import CarlaEgoVehicleControl, CarlaEgoVehicleStatus
+from carla_msgs.msg import (
+    CarlaEgoVehicleControl,
+    CarlaEgoVehicleStatus,
+    CarlaEgoVehicleSteering)
 from nav_msgs.msg import Odometry
 from rclpy.node import Node
 from sensor_msgs.msg import PointCloud2
 from std_msgs.msg import Header
+from tier4_vehicle_msgs.msg import ActuationCommandStamped, ActuationStatusStamped
 
 
 class AutowareBridge(Node):
@@ -39,36 +44,51 @@ class AutowareBridge(Node):
         super().__init__('carla_autoware_bridge')
         self._velocity_report_converter = VelocityReportConverter()
         self._steering_status_converter = SteeringStatusConverter()
-        self._control_command_converter = ControlCommandConverter()
+        self._actuation_status_converter = ActuationStatusConverter()
+
+        package_path = get_package_share_directory('carla_autoware_bridge')
+        self.declare_parameter('csv_path_steer_map',
+                               package_path + '/data/carla_tesla_model3/steer_map.csv')
+        csv_path_steer_map = self.get_parameter(
+            'csv_path_steer_map').get_parameter_value().string_value
+        self._control_command_converter = ControlCommandConverter(csv_path_steer_map)
+
         self._lidar_ex_converter = LidarExtendedConverter()
 
         self._odometry_subscriber = self.create_subscription(
-            Odometry, '/carla/ego_vehicle/odometry',
+            Odometry, '~/input/odometry',
             self._odometry_callback, 1)
 
         self._vehicle_status_subscriber = self.create_subscription(
-            CarlaEgoVehicleStatus, '/carla/ego_vehicle/vehicle_status',
+            CarlaEgoVehicleStatus, '~/input/status',
             self._vehicle_status_callback, 1)
 
-        self._ackermann_control_command_subscriber = self.create_subscription(
-            AckermannControlCommand, '/control/command/control_cmd',
-            self._ackermann_control_command_callback, 1)
+        self._vehicle_steering_subscriber = self.create_subscription(
+            CarlaEgoVehicleSteering, '~/input/steering',
+            self._vehicle_steering_callback, 1)
+
+        self._control_command_subscriber = self.create_subscription(
+            ActuationCommandStamped, '~/input/actuation',
+            self._control_command_callback, 1)
 
         self._lidar_subscriber = self.create_subscription(
-            PointCloud2, '/carla/ego_vehicle/lidar',
+            PointCloud2, '~/input/lidar',
             self._lidar_callback, 1)
 
         self._velocity_report_publisher = self.create_publisher(
-            VelocityReport, '/carla/ego_vehicle/velocity_status', 1)
+            VelocityReport, '~/output/velocity_status', 1)
 
         self._steering_status_publisher = self.create_publisher(
-            SteeringReport, '/carla/ego_vehicle/steering_status', 1)
+            SteeringReport, '~/output/steering_status', 1)
+
+        self._actuation_status_publisher = self.create_publisher(
+            ActuationStatusStamped, '~/output/actuation_status', 1)
 
         self._vehicle_control_command_publisher = self.create_publisher(
-            CarlaEgoVehicleControl, '/carla/ego_vehicle/vehicle_control_cmd', 1)
+            CarlaEgoVehicleControl, '~/output/control', 1)
 
         self._lidar_ex_publisher = self.create_publisher(
-            PointCloud2, '/carla/ego_vehicle/lidar_ex', 1)
+            PointCloud2, '~/output/lidar_ex', 1)
 
     def _odometry_callback(self, odometry_msg):
         self._velocity_report_converter.inbox = odometry_msg
@@ -83,15 +103,25 @@ class AutowareBridge(Node):
         self._velocity_report_publisher.publish(velocity_report_msg)
 
     def _vehicle_status_callback(self, vehicle_status_msg):
-        self._steering_status_converter.inbox = vehicle_status_msg
+        self._actuation_status_converter.inbox = vehicle_status_msg
+        self._actuation_status_converter.convert()
+
+        timestamp = self.get_clock().now().to_msg()
+        actuation_status_msg = self._actuation_status_converter.outbox
+        actuation_status_msg.header.stamp = timestamp
+        self._actuation_status_publisher.publish(actuation_status_msg)
+
+    def _vehicle_steering_callback(self, vehicle_steering_msg):
+        self._steering_status_converter.inbox = vehicle_steering_msg
         self._steering_status_converter.convert()
 
+        timestamp = self.get_clock().now().to_msg()
         steering_status_msg = self._steering_status_converter.outbox
-        steering_status_msg.stamp = self.get_clock().now().to_msg()
+        steering_status_msg.stamp = timestamp
         self._steering_status_publisher.publish(steering_status_msg)
 
-    def _ackermann_control_command_callback(self, ackermann_control_command_msg):
-        self._control_command_converter.inbox = ackermann_control_command_msg
+    def _control_command_callback(self, control_command_msg):
+        self._control_command_converter.inbox = control_command_msg
         self._control_command_converter.convert()
 
         vehicle_control_command_msg = self._control_command_converter.outbox

@@ -24,10 +24,11 @@ import os
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
+
 
 def generate_launch_description():
     host_argument = DeclareLaunchArgument(
@@ -71,6 +72,11 @@ def generate_launch_description():
          get_package_share_directory('carla_autoware_bridge')),
          '/carla_autoware_ego_vehicle.launch.py']))
 
+    raw_vehicle_converter = IncludeLaunchDescription(
+      PythonLaunchDescriptionSource([os.path.join(
+         get_package_share_directory('carla_autoware_bridge')),
+         '/raw_vehicle_converter.launch.py']))
+
     manual_control_window = IncludeLaunchDescription(
       PythonLaunchDescriptionSource([os.path.join(
          get_package_share_directory('carla_manual_control')),
@@ -84,10 +90,12 @@ def generate_launch_description():
         town_argument,
         carla_autoware_bridge,
         spawn_ego_vehicle,
+        raw_vehicle_converter,
         view_argument,
         manual_control_window,
     ])
     return ld
+
 
 if __name__ == '__main__':
     generate_launch_description()
