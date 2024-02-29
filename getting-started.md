@@ -2,9 +2,10 @@ This tutorial helps with setup and launch Autoware Humble with CARLA 0.9.15 simu
 
 ## Requirements
 
+* PC x86/x64bit with GPU installed 
 * Ubuntu
-   * This tutorial was tested on Ubuntu 20.04, but the same should be possible on other Ubuntu distributions
-* PC x86/64bit with GPU installed 
+
+This tutorial was tested on Ubuntu 20.04, but the same should be possible on other Ubuntu distributions
 
 ### Update and install git
 
@@ -15,7 +16,7 @@ sudo apt-get -y update
 sudo apt-get -y install git
 ```
 
-## Section 1 Set up a development environment
+## Section 1. Set up a development environment
 
 This step describes how to install [Autoware Universe](https://autowarefoundation.github.io/autoware-documentation/main/installation/autoware/docker-installation/) from `humble` branch via **Docker Installation** and how to install [`carla-autoware-bridge`](https://github.com/Robotics010/carla_autoware_bridge) to allow Autoware-CARLA communication.
 
@@ -54,7 +55,7 @@ mkdir ~/autoware_map
 
 Clone [autoware-contents](https://bitbucket.org/carla-simulator/autoware-contents/src/master/) to a temp directory, then copy `maps/point_cloud_maps/Town01.pcd` and `maps/vector_maps/lanelet2/Town01.osm` to `~/autoware_map/carla-town-1/` and rename those to `pointcloud_map.pcd` and `lanelet2_map.osm` accordingly.
 
-## Section 2 CARLA installation
+## Section 2. CARLA installation
 
 ### 2.1 CARLA server installation
 
@@ -92,7 +93,7 @@ cd ~/CARLA_0.9.15/PythonAPI/examples
 python3 manual_control.py
 ```
 
-## Section 3 CARLA autoware bridge installation
+## Section 3. CARLA autoware bridge installation
 
 ### 3.1 Set up a workspace
 
@@ -177,13 +178,15 @@ Install [carla python client 0.9.15](https://carla.readthedocs.io/en/0.9.15/star
 
 ```
 pip3 install carla==0.9.15
+(no)robo@Victus:~/autoware$ sudo apt-get install ros-humble-tf-transformations
+robo@Victus:~/autoware$ python3 -m pip install transforms3d
 ```
 
-## Section 3 Launching ad hoc simulation
+## Section 4. Launching ad hoc simulation
 
 Here is a list of steps and commands to launch Autoware Universe ad hoc simulation with CARLA.
 
-### 3.1 Launch CARLA server (at Host)
+### 4.1 Launch CARLA server (at Host)
 
 ```
 cd ~/CARLA_0.9.15
@@ -195,7 +198,7 @@ You may find these arguments useful while executing CARLA:
 * `-carla-rpc-port=3000` - use other than 2000 default port for RPC service's port
 * `-quality-level=Low` - use low quality level mode for a minimal video memory consumption
 
-### 3.2 Launch carla_autoware_bridge (in Docker)
+### 4.2 Launch carla_autoware_bridge (in Docker)
 
 Launch `carla_autoware_bridge`, which spawns ego vehicle as well. 
 
@@ -211,7 +214,7 @@ Here you can add the following arguments
 * `timeout:=10` to increase waiting time of loading a CARLA town before raising error
 * `view:=true` to show a third-person-view window
 
-### 3.3 Launch Autoware Universe
+### 4.3 Launch Autoware Universe
 
 And launch Autoware software stack with the following commands:
 
@@ -224,7 +227,7 @@ At this step your desktop should look like:
 
 ![state_after_start](images/state_after_start.png)
 
-### 3.4 Set start location
+### 4.4 Set start location
 
 Set ego vehicle start location using 2D Pose Estimate tool (highlighted by red color)
 
@@ -234,7 +237,7 @@ Optionally you can attach current view to the vehicle by selecting `base_link` a
 
 ![target_frame](images/target_frame.png)
 
-### 3.5 Send route and engage
+### 4.5 Send route and engage
 
 Finally send target location and allow engaging vehicle
 
