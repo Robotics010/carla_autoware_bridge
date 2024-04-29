@@ -8,7 +8,7 @@ package_name = 'carla_autoware_bridge'
 setup(
     name=package_name,
     version='0.2.0',
-    packages=[package_name],
+    packages=[package_name, 'carla_autoware_bridge.converter'],
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
